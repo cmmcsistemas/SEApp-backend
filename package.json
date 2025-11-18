@@ -1,0 +1,41 @@
+{
+  "name": "backend-seapp",
+  "version": "1.0.0",
+  "main": "index.js",
+  "type": "module",
+  "dependencies": {
+    "@tanstack/react-router": "^1.128.3",
+    "bcrypt": "^6.0.0",
+    "bcryptjs": "^3.0.2",
+    "body-parser": "^2.2.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.5.0",
+    "express": "^5.1.0",
+    "express-handlebars": "^8.0.1",
+    "glob": "^11.0.2",
+    "jwt-simple": "^0.5.6",
+    "moment": "^2.30.1",
+    "morgan": "^1.10.0",
+    "multer": "^2.0.1",
+    "mysql2": "^3.14.0",
+    "nodemon": "^3.1.9",
+    "sequelize": "^6.37.7",
+    "sequelize-paginate": "^1.1.6"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.9",
+    "wrangler": "^4.13.2"
+  },
+  "packageManager": "pnpm@10.7.1+sha512.2d92c86b7928dc8284f53494fb4201f983da65f0fb4f0d40baafa5cf628fa31dae3e5968f12466f17df7e97310e30f343a648baea1b9b350685dafafffdf5808",
+  "scripts": {
+    "dev": "nodemon ./src/index.js",
+    "start": "node ./src/index.js"
+  },
+  "keywords": [
+    "API",
+    "REST"
+  ],
+  "author": "",
+  "license": "ISC",
+  "description": ""
+}

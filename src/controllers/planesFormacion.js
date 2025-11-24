@@ -31,7 +31,10 @@ export const vistaProgramaParticipante = async (req, res) => {
         const { detalleID } = req.params;
 
         const programas = await VistaProgramas.findAll({
-            attributes: ['id_detalle', 'nombre_programa', 'nombre_linea', 'nombre_nivel', 'nombre_titulo_programa']
+            attributes: ['id_detalle', 'nombre_programa', 'nombre_linea', 'nombre_nivel', 'nombre_titulo_programa'],
+            order: [
+                ['nombre_titulo_programa', 'ASC'] // Ordena por nombre_titulo_programa de forma ascendente (alfabéticamente A-Z)
+            ]
         });
         res.status(200).json(programas);
     } catch (error) {

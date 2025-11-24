@@ -9,12 +9,7 @@ export const getProgramaParticipante = async (req, res) => {
     const { detalleID } = req.params;
 
     const campos = await ProgramaDetalle.findAll({
-      where: {
-        id_detalle: detalleID
-      },
-      order: [
-        ['id_detalle', 'ASC'] 
-      ]
+      attributes: ['id_detalle', 'id_programa', 'id_linea', 'id_nivel', 'id_titulo_programa'],
     });
     if (campos.length > 0) {
       // Si se encuentran campos, responde con ellos

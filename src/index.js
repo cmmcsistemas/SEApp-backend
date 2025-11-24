@@ -7,6 +7,8 @@ import ParticipanteRoutes from "./routes/participantes.js";
 import UsuarioRoutes from "./routes/usuarios.js";
 import formulariosRoutes from "./routes/formularios.js";
 import basicaRoutes from "./routes/basica.js";
+import planesFormacion from "./routes/planesFormacion.js";
+
 import FollowRoutes from "./routes/login.js";
 
 dotenv.config();
@@ -33,6 +35,7 @@ app.use('/api/user', UsuarioRoutes);
 app.use('/api/participantes', ParticipanteRoutes);
 app.use('/api/formularios', formulariosRoutes);
 app.use('/api/basica', basicaRoutes);
+app.use('/api/planes-de-formacion', planesFormacion);
 //app.use('/api/follow', FollowRoutes);
 
 app.listen(puerto, () => {

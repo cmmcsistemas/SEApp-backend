@@ -7,14 +7,7 @@ export const getCamposFormulario = async (req, res) => {
     // Extrae el ID del formulario de los parámetros de la URL
     const { formularioId } = req.params;
 
-    // TODO: Aquí podrías añadir un mapeo para convertir nombres amigables (ej. 'caracterizacion-ampliada') a IDs de formulario si es necesario.
-    // Ejemplo:
-    // const id = getFormularioIdFromName(formularioId);
-    // if (!id) {
-    //   return res.status(404).json({ message: 'Formulario no encontrado' });
-    // }
-
-    // Busca todos los campos de formulario que coincidan con el id_formulario proporcionado
+      // Busca todos los campos de formulario que coincidan con el id_formulario proporcionado
     const campos = await CampoFormulario.findAll({
       where: {
         id_campo: formularioId

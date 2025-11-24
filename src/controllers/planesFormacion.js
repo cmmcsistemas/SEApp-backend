@@ -1,5 +1,6 @@
-import VistaProgramaDetalle from '../models/vistaProgramasDetalles.js';
+
 import ProgramaDetalle from '../models/programasDetalles.js';
+import VistaProgramas from '../models/vistaProgramasDetalles.js';
 import { Op } from 'sequelize';
 
 
@@ -24,3 +25,19 @@ export const getProgramaParticipante = async (req, res) => {
     res.status(500).json({ message: 'Error interno del servidor.' });
   }
 };
+
+export const vistaProgramaParticipante = async (req, res) => {
+    try {
+        const { detalleID } = req.params;
+
+        const programas = await VistaProgramas.findAll({
+            attributes: ['id_detalle', 'nombre_programa', 'nombre_linea', 'nombre_nivel', 'nombre_titulo_programa']
+        });
+        res.status(200).json(programas);
+    } catch (error) {
+            // Manejo de errores
+    console.error('Error al obtener campos del programas:', error);
+    res.status(500).json({ message: 'Error interno del servidor.' });
+    }
+    
+}

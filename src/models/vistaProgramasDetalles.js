@@ -6,20 +6,20 @@ const VistaProgramaDetalle = sequelize.define('VistaProgramaDetalle', {
     type: DataTypes.INTEGER,
     primaryKey: true
   },
-  id_programa: {
-    type: DataTypes.INTEGER,
+  nombre_programa: {
+    type: DataTypes.STRING(255),
     allowNull: false
   },
-  id_linea: {
-    type: DataTypes.INTEGER,
+    nombre_linea: {
+    type: DataTypes.STRING(255),
     allowNull: false
   },
-  id_nivel: {
-    type: DataTypes.INTEGER,
+  nombre_nivel: {
+    type: DataTypes.STRING(255),
     allowNull: false
   },
-  id_titulo_programa: {
-    type: DataTypes.INTEGER,
+  nombre_titulo_programa: {
+    type: DataTypes.STRING(255),
     allowNull: false
   }
 }, {

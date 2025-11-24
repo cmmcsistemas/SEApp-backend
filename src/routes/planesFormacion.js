@@ -1,5 +1,5 @@
 import { Router } from "express";
-import {getProgramaParticipante} from "../controllers/planesFormacion.js";
+import {getProgramaParticipante, vistaProgramaParticipante} from "../controllers/planesFormacion.js";
 import { ensureAuth } from "../middleware/auth.js";
 
 
@@ -13,7 +13,7 @@ const router = Router();
 //router.get('/test-nivel-programas',  testNivelProgramas);
 //router.get('/test-titulo-programas',  testTituloProgramas);
 router.get('/programas-participante',  getProgramaParticipante);
-//router.get('/vista-programas-participante',  vistaProgramaParticipante);
+router.get('/vista-programas-participante',  vistaProgramaParticipante);
 //router.post('/register', register);
 //router.post('/login', login);
 //router.get('/profile/:id', ensureAuth, profile);

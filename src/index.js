@@ -21,11 +21,16 @@ console.log("API node en ejecucion");
 const app = express();
 const puerto = process.env.PORT || 3900;
 
+const allowedOrigin = 'https://roaring-gnome-b3e4be.netlify.app';
+
 app.use(cors({
-    origin: '*',
-    methods: 'GET,PUT,HEAD,PATCH,POST,DELETE',
-    preflightContinue: false,
-    optionSuccessSatus: 204
+    origin: allowedOrigin,
+    // Permite todas las cabeceras estándar y personalizadas necesarias
+    allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept', 'Authorization'],
+    // Permite los métodos HTTP utilizados
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    // Establece la respuesta de estado para las solicitudes preflight OPTIONS
+    optionsSuccessStatus: 204
 }));
 
 app.use(bodyParser.json());

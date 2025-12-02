@@ -3,6 +3,7 @@ import Participante from "../models/participantes.js";
 //import Publication from "../models/publications.js";
 import bcrypt from "bcryptjs";
 import { createToken } from "../services/jwt.js";
+import { Op } from "sequelize";
 //import { followThisUser, followUserIds } from "../services/followServices.js";
 
 export const testParticipante = (req, res) => {

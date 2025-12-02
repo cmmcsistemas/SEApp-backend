@@ -137,9 +137,8 @@ export const testParticipante = (req, res) => {
         page: page,
         paginate: itemsPerPage, // 'paginate' es el nombre de la opción en sequelize-paginate para el límite
         // Para Sequelize, la selección/exclusión de columnas se hace con 'attributes'
-        attributes: { exclude: ['createdAt', 'updatedAt', '__v'] } // Excluye campos de timestamps y __v si existen
-        // Si quieres excluir 'id_participante', asegúrate de que no es la primary key necesaria para algo.
-        // Para incluir solo ciertos campos: attributes: ['id_participante', 'nombre', 'email', 'telefono']
+       // attributes: { exclude: ['created_at'] } // Excluye campos de timestamps y __v si existen
+        attributes: ['id_participante', 'nombre', 'apellido', 'documento',  'email', 'telefono', 'fecha_nacimiento']
  
       }
   
@@ -172,7 +171,7 @@ export const testParticipante = (req, res) => {
       console.log("Error listar usuarios: ", error);
         return res.status(500).send({
           status: "Error",
-          message: "Error al lista r usuarios"
+          message: "Error al listar usuarios"
     });
   }
   }

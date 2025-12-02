@@ -75,8 +75,6 @@ export const testParticipante = (req, res) => {
   };
   };
   
-
-  
   export const profile = async (req,res) => {
     try {
       
@@ -117,8 +115,7 @@ export const testParticipante = (req, res) => {
       
     }
   }
-  
-  
+   
   export const listParticipant = async (req,res) => {
     try {
   
@@ -294,3 +291,70 @@ export const testParticipante = (req, res) => {
       });
     }
   }
+
+  export const searchParticipant = async (req, res) => {
+    try {
+        // 1. Obtener el término de búsqueda de los parámetros de la consulta (query string)
+        const searchQuery = req.query.query;
+
+        // Validar que el término de búsqueda exista
+        if (!searchQuery) {
+            return res.status(400).send({
+                status: "error",
+                message: "Debe proporcionar un término de búsqueda (query)."
+            });
+        }
+
+        // 2. Definir la condición de búsqueda
+        // Se utiliza Op.or para buscar coincidencias en el campo 'documento' O en el campo 'nombre'.
+        // Usamos Op.like y el comodín '%' para hacer una búsqueda parcial (case-insensitive si la DB lo soporta).
+        const searchCondition = {
+            [Op.or]: [
+                // Búsqueda por documento (asumiendo que es un número y queremos una coincidencia exacta o parcial)
+                {
+                    documento: {
+                        [Op.like]: `%${searchQuery}%`
+                    }
+                },
+                // Búsqueda por nombre (coincidencia parcial)
+                {
+                    nombre: {
+                        [Op.like]: `%${searchQuery}%`
+                    }
+                }
+            ]
+        };
+        
+        // 3. Ejecutar la consulta
+        const participants = await Participante.findAll({
+            where: searchCondition,
+            attributes: ['id_participante', 'nombre', 'apellido', 'documento', 'email', 'telefono', 'fecha_nacimiento']
+            // Puedes añadir 'order' si necesitas ordenar los resultados
+            // order: [['nombre', 'ASC']]
+        });
+
+        // 4. Verificar resultados
+        if (!participants || participants.length === 0) {
+            return res.status(404).send({
+                status: "error",
+                message: `No se encontraron participantes para el término: "${searchQuery}"`
+            });
+        }
+
+        // 5. Devolver la respuesta
+        return res.status(200).json({
+            status: "success",
+            message: "Participantes encontrados",
+            total: participants.length,
+            participants: participants
+        });
+
+    } catch (error) {
+        console.log("Error al buscar participantes: ", error);
+        return res.status(500).send({
+            status: "Error",
+            message: "Error interno del servidor al buscar participantes",
+            error: error.message
+        });
+    }
+};

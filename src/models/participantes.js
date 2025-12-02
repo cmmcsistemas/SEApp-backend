@@ -39,10 +39,6 @@ const Participante = sequelize.define('Participante', {
     type: DataTypes.DATEONLY, // Usamos DATEONLY para solo almacenar la fecha sin la hora
     allowNull: true // Puede ser nulo o false según tus requisitos
   },
-  genero: {
-    type: DataTypes.STRING,
-    allowNull: true // Puede ser nulo o false según tus requisitos
-  },
   created_at: {
     type: DataTypes.DATE,
     allowNull: false,

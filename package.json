@@ -5,7 +5,6 @@
   "type": "module",
   "dependencies": {
     "@tanstack/react-router": "^1.128.3",
-    "bcrypt": "^6.0.0",
     "bcryptjs": "^3.0.2",
     "body-parser": "^2.2.0",
     "cors": "^2.8.5",

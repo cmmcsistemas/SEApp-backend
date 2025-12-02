@@ -2,7 +2,7 @@
 import User from "../models/usuarios.js";
 //import Follow from "../models/follows.js";
 //import Publication from "../models/publications.js";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import { createToken } from "../services/jwt.js";
 //import { followThisUser, followUserIds } from "../services/followServices.js";
 

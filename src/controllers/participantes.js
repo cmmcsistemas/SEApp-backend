@@ -122,13 +122,13 @@ export const testParticipante = (req, res) => {
   
       let page = req.params.page ? parseInt(req.params.page, 10) : 1;
   
-      let itemsPerPage = req.query.limit ? parseInt(req.query.limit, 10) : 4;
+      let itemsPerPage = req.query.limit ? parseInt(req.query.limit, 10) : 100;
 
       if (isNaN(page) || page <= 0) {
         page = 1;
     }
     if (isNaN(itemsPerPage) || itemsPerPage <= 0) {
-        itemsPerPage = 4;
+        itemsPerPage = 100;
     }
 
       const options = {

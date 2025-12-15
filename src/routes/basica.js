@@ -1,13 +1,14 @@
 
 import express from 'express';
 import { ensureAuth } from "../middleware/auth.js";
-import {findAllSubProyectos, findGroupMunicipio, findAllDepartamentos, findAllDiscapacidades, findAllGrupoVulnerable, findAllEtnias, findAllPaises, findAllGeneros, findAllMunicipios, findOneSubProyecto, createSubProyecto, updateSubProyecto, deleteSubProyecto} from "../controllers/basica.js";
+import {findAllSubProyectos,findAllLocalidades, findGroupMunicipio, findAllDepartamentos, findAllDiscapacidades, findAllGrupoVulnerable, findAllEtnias, findAllPaises, findAllGeneros, findAllMunicipios, findOneSubProyecto, createSubProyecto, updateSubProyecto, deleteSubProyecto} from "../controllers/basica.js";
 
 const router = express.Router();
 // Ruta para crear un nuevo subproyecto
 router.post('/subproyectos', createSubProyecto);
 // Rutas para consultas
 router.get('/subproyectos', findAllSubProyectos);
+router.get('/localidades', findAllLocalidades);
 router.get('/municipios', findAllMunicipios);
 router.get('/departamentos', findAllDepartamentos);
 router.get('/paises', findAllPaises);

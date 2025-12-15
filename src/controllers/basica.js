@@ -7,6 +7,7 @@ import Etnias from '../models/etnias.js';
 import Discapacidades from '../models/discapacidades.js';
 import GrupoVulnerable from '../models/grupoVulnerable.js';
 import Departamento from '../models/departamento.js';
+import Localidad from '../models/localidades.js';
 
 // Crear y guardar un nuevo subproyecto
 export const createSubProyecto = async (req, res) => {
@@ -42,6 +43,20 @@ export const findAllSubProyectos = async (req, res) => {
     console.error('Error al obtener subproyectos:', error);
     res.status(500).json({ message: 'Error interno del servidor.' });
   }
+};
+
+
+export const findAllLocalidades = async (req, res) => {
+  try {
+    const localidades = await Localidad.findAll({
+      attributes: ['id_localidad','nombre_localidad'],
+    });
+  } catch (error) {
+    console.error('Error al obtener localidades:', error);
+    res.status(500).json({ message: 'Error interno del servidor.' });
+  }
+
+
 };
 
 export const findAllMunicipios = async (req, res) => {

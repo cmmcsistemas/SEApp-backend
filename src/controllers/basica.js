@@ -49,8 +49,10 @@ export const findAllSubProyectos = async (req, res) => {
 export const findAllLocalidades = async (req, res) => {
   try {
     const localidades = await Localidad.findAll({
-      attributes: ['id_localidad','nombre_localidad'],
+      attributes: ['id_localidad', 'id_municipio', 'nombre_localidad'],
+
     });
+    res.status(200).json(localidades);
   } catch (error) {
     console.error('Error al obtener localidades:', error);
     res.status(500).json({ message: 'Error interno del servidor.' });

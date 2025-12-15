@@ -8,6 +8,7 @@ import Discapacidades from '../models/discapacidades.js';
 import GrupoVulnerable from '../models/grupoVulnerable.js';
 import Departamento from '../models/departamento.js';
 import Localidad from '../models/localidades.js';
+import Ciiu from '../models/ciiu.js';
 
 // Crear y guardar un nuevo subproyecto
 export const createSubProyecto = async (req, res) => {
@@ -30,6 +31,20 @@ export const createSubProyecto = async (req, res) => {
     res.status(500).json({ message: 'Error interno del servidor.' });
   }
 };
+
+// Obtener codigo CIIU
+
+export const findCiiuCode = async (req, res) => {
+  try {
+    const ciiu = await Ciiu.findAll ({
+      attributes: ['id','data'],
+    });
+    res.status(200).json(ciiu);
+  } catch (error) {
+    console.error('Error al obtener codigo ciiu:', error);
+    res.status(500).json({ message: 'Error interno del servidor.' });
+  }
+}
 
 // Obtener todos los subproyectos con columnas específicas
 export const findAllSubProyectos = async (req, res) => {

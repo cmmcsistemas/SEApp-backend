@@ -114,7 +114,7 @@ export const getCamposPorTipo = async (req, res) => {
         // Mapea los resultados para procesar las opciones
         const camposProcesados = campos.map(campo => {
           // Asume que el getter en el modelo maneja el JSON
-          const opciones = Array.isArray(campo.opciones) ? campo.opciones : (campo.opciones ? campo.opciones.split(',') : []);
+          const opciones = Array.isArray(campo.opciones) ? campo.opciones : (campo.opciones ? campo.opciones.split('.,') : []);
           return {
             id_campo: campo.id_campo,
             nombre_campo: campo.nombre_campo,

@@ -18,61 +18,56 @@ export const testParticipante = (req, res) => {
   };
 
 // Registrar un unico usuario en la tabla participantes
-  export const register = async (req, res) => {
+export const register = async (req, res) => {
     try {
-      //Obtener datos
-      let params = req.body;
-  
-      //Validar datos los que son obligatorios y existan
-      if(!params.nombre || !params.apellido || !params.documento || !params.email || !params.telefono || !params.fecha_nacimiento ){
-        return res.status(400).json({
-          status: "error",
-          message: "faltan datos por enviar"
-        });
-        
-      }
-        
-        // crear un objeto con los usuarios que validamos
-        let participant_to_save =  new Participante(params);
-  
-        //Control de usuarios duplicados
-  
-        const existingParticipant = await Participante.findOne({
-          $or: [
-            { documento: participant_to_save.documento.toLowerCase() }
-          ]
-        });
-  
-        if (existingParticipant) {
-          return res.status(409).send({
-            status: "Unsuccess",
-            message: "El usuario ya existe"
-          })
+        const { nombre, apellido, documento, email, telefono, fecha_nacimiento } = req.body;
+
+        // 1. Validación de presencia
+        if (!nombre || !apellido || !documento || !email || !telefono || !fecha_nacimiento) {
+            return res.status(400).json({
+                status: "error",
+                message: "Faltan datos obligatorios"
+            });
         }
-  
-  
-        //Guardar datos en la base de datos
-        await participant_to_save.save();
-  
-         // Devolver usuario
-        return res.status(200).json({
-          status: "success",  
-          message: "Registro de usuario exitoso",
-          params,
-          participant_to_save
+
+        // 2. Control de duplicados (Usando params específicos para evitar errores)
+        const existingParticipant = await Participante.findOne({
+            where: { documento: documento }
         });
-  
-    
-  
+
+        if (existingParticipant) {
+            return res.status(409).json({
+                status: "error",
+                message: "El participante con este documento ya existe"
+            });
+        }
+
+        // 3. Guardar (Solo los campos permitidos)
+        const participantSaved = await Participante.create({
+            nombre,
+            apellido,
+            documento,
+            email,
+            telefono,
+            fecha_nacimiento
+        });
+
+        // 4. Respuesta limpia
+        return res.status(201).json({
+            status: "success",
+            message: "Registro exitoso",
+            participante: participantSaved
+        });
+
     } catch (error) {
-      console.log("Error en el registro de usuario", error);
-        return res.status(500).send({
-          status: "Error",
-          message: "Registro de usuario",
-          error: error.message
-    })
-  };
-  };
+        console.error("Error en registro:", error);
+        return res.status(500).json({
+            status: "error",
+            message: "Error interno del servidor",
+            error: error.message
+        });
+    }
+};
   
   export const profile = async (req,res) => {
     try {

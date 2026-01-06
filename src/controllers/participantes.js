@@ -68,7 +68,7 @@ export const register = async (req, res) => {
             fecha_nacimiento
         }, {transaction: t});
 
-        const pId = participantSavedte.id_participante;
+        const pId = participantSaved.id_participante;
 
         await Promise.all(
           [

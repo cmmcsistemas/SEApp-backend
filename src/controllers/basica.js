@@ -33,7 +33,6 @@ export const createSubProyecto = async (req, res) => {
 };
 
 // Obtener codigo CIIU
-
 export const findCiiuCode = async (req, res) => {
   try {
     const ciiu = await Ciiu.findAll ({

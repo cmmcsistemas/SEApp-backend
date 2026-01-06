@@ -24,7 +24,7 @@ export const testParticipante = (req, res) => {
       let params = req.body;
   
       //Validar datos los que son obligatorios y existan
-      if(!params.nombre || !params.apellido || !params.documento || !params.email || !params.telefono || !params.fecha_nacimiento || !params.genero){
+      if(!params.nombre || !params.apellido || !params.documento || !params.email || !params.telefono || !params.fecha_nacimiento ){
         return res.status(400).json({
           status: "error",
           message: "faltan datos por enviar"
@@ -39,7 +39,6 @@ export const testParticipante = (req, res) => {
   
         const existingParticipant = await Participante.findOne({
           $or: [
-            { email: participant_to_save.email.toLowerCase() },
             { documento: participant_to_save.documento.toLowerCase() }
           ]
         });
@@ -48,7 +47,6 @@ export const testParticipante = (req, res) => {
           return res.status(409).send({
             status: "Unsuccess",
             message: "El usuario ya existe"
-  
           })
         }
   
@@ -359,3 +357,4 @@ export const testParticipante = (req, res) => {
         });
     }
 };
+

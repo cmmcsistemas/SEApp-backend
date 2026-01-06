@@ -19,29 +19,28 @@ const Participante = sequelize.define('Participante', {
     allowNull: false
   },
   documento: {
-    type: DataTypes.INTEGER,
+    type: DataTypes.BIGINT,
     allowNull: false,
     unique: true // Asumiendo que el documento debe ser único
   },
   email: {
     type: DataTypes.STRING,
-    allowNull: false,
-    unique: true, // Asumiendo que el email debe ser único
+    allowNull: true,
     validate: {
       isEmail: true // Validación para asegurar que sea un formato de correo electrónico válido
     }
   },
   telefono: {
     type: DataTypes.INTEGER, // O DataTypes.STRING si los números pueden tener formatos variados (ej. "+57 3xx xxxxxxx")
-    allowNull: true // Puede ser nulo o false según tus requisitos
+    allowNull: false // Puede ser nulo o false según tus requisitos
   },
   fecha_nacimiento: {
     type: DataTypes.DATEONLY, // Usamos DATEONLY para solo almacenar la fecha sin la hora
-    allowNull: true // Puede ser nulo o false según tus requisitos
+    allowNull: false // Puede ser nulo o false según tus requisitos
   },
   created_at: {
     type: DataTypes.DATE,
-    allowNull: false,
+    allowNull: true,
     defaultValue: DataTypes.NOW // Establece el valor por defecto a la fecha y hora actual al crear el registro
   }
 }, {

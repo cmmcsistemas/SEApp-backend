@@ -6,7 +6,7 @@ import { ensureAuth } from "../middleware/auth.js";
 const router = Router();
 
 //Definir rutas de user
-router.get('/test-participant',  testParticipante);
+//router.get('/test-participant',  testParticipante);
 router.post('/register', register);
 router.get('/list', listParticipant);
 router.get('/list/:page', listParticipant);

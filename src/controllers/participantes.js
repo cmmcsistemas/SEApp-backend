@@ -17,22 +17,9 @@ import ProyectosAsignados from "../models/proyectosAsignados.js";
 
 //import { followThisUser, followUserIds } from "../services/followServices.js";
 
-export const testParticipante = (req, res) => {
-  let params = req.body;
-  let participant_to_save =  new Participante(params);
-  
-  return res.status(200).send({
-      message: "Mensaje enviado desde el controlador de Usuarios",
-      params,
-      participant_to_save
-    });
-  };
-
 // Registrar un unico usuario en la tabla participantes
 export const register = async (req, res) => {
-           const { nombre, apellido, documento, email, telefono, fecha_nacimiento,
-            id_direccion_info, id_discapacidad, id_entorno, id_etnia, id_genero, id_grupo, id_grupo_vulnerable, ubicacion_info
-            } = req.body;
+           const { nombre, apellido, documento, email, telefono, fecha_nacimiento, id_direccion_info, id_discapacidad, id_entorno, id_etnia, id_genero, id_grupo, id_grupo_vulnerable, ubicacion_info} = req.body;
 
         // 1. Validación de presencia
         if (!nombre || !apellido || !documento || !email || !telefono || !fecha_nacimiento) {
@@ -114,7 +101,9 @@ export const register = async (req, res) => {
         });
 
     } catch (error) {
-      await t.rollback();
+      if (t && !t.finished) {
+            await t.rollback();
+        }
         console.error("Error en registro:", error);
         return res.status(500).json({
             status: "error",

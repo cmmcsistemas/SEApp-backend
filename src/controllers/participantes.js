@@ -4,6 +4,17 @@ import Participante from "../models/participantes.js";
 import bcrypt from "bcryptjs";
 import { createToken } from "../services/jwt.js";
 import { Op } from "sequelize";
+import sequelize from "../database/database.js";
+import Direcciones from "../models/direcciones.js";
+import DiscapacidadParticipante from "../models/discapacidadParticipante.js";
+import EntornoParticipante from "../models/entornoParticipante.js";
+import EtniaParticipante from "../models/etniaParticipante.js";
+import GeneroParticipante from "../models/generoParticipante.js";
+import GrupoParticipante from "../models/grupoParticipante.js";
+import GrupoVulnerableParticipante from "../models/grupoVulnerableParticipante.js";
+import UbicacionParticipante from "../models/ubicacionParticipante.js";
+import ProyectosAsignados from "../models/proyectosAsignados.js";
+
 //import { followThisUser, followUserIds } from "../services/followServices.js";
 
 export const testParticipante = (req, res) => {
@@ -19,8 +30,9 @@ export const testParticipante = (req, res) => {
 
 // Registrar un unico usuario en la tabla participantes
 export const register = async (req, res) => {
-    try {
-        const { nombre, apellido, documento, email, telefono, fecha_nacimiento } = req.body;
+           const { nombre, apellido, documento, email, telefono, fecha_nacimiento,
+            id_direccion_info, id_discapacidad, id_entorno, id_etnia, id_genero, id_grupo, id_grupo_vulnerable, ubicacion_info
+            } = req.body;
 
         // 1. Validación de presencia
         if (!nombre || !apellido || !documento || !email || !telefono || !fecha_nacimiento) {
@@ -30,12 +42,16 @@ export const register = async (req, res) => {
             });
         }
 
+        const t = await sequelize.transaction();
+  
+  try {
         // 2. Control de duplicados (Usando params específicos para evitar errores)
         const existingParticipant = await Participante.findOne({
             where: { documento: documento }
         });
 
         if (existingParticipant) {
+            await t.rollback();
             return res.status(409).json({
                 status: "error",
                 message: "El participante con este documento ya existe"
@@ -50,16 +66,55 @@ export const register = async (req, res) => {
             email,
             telefono,
             fecha_nacimiento
-        });
+        }, {transaction: t});
+
+        const pId = participantSavedte.id_participante;
+
+        await Promise.all(
+          [
+            // Direcciones
+            Direcciones.create({
+                id_participante: pId,
+                ...id_direccion_info // Esparcimos los datos: tipo_via, numero_principal, etc.
+            }, { transaction: t }),
+
+            // Discapacidad
+            DiscapacidadParticipante.create({ id_participante: pId, id_discapacidad }, { transaction: t }),
+
+            // Entorno
+            EntornoParticipante.create({ id_participante: pId, id_entorno }, { transaction: t }),
+
+            // Etnia
+            EtniaParticipante.create({ id_participante: pId, id_etnia }, { transaction: t }),
+
+            // Género
+            GeneroParticipante.create({ id_participante: pId, id_genero }, { transaction: t }),
+
+            // Grupo
+            GrupoParticipante.create({ id_participante: pId, id_grupo }, { transaction: t }),
+
+            // Grupo Vulnerable
+            GrupoVulnerableParticipante.create({ id_participante: pId, id_grupo: id_grupo_vulnerable }, { transaction: t }),
+
+            // Ubicación
+            UbicacionParticipante.create({
+                id_participante: pId,
+                ...ubicacion_info // id_pais, id_municipio, id_departamento, id_localidad
+            }, { transaction: t })
+          ]
+        );
+
+        await t.commit();
 
         // 4. Respuesta limpia
         return res.status(201).json({
             status: "success",
-            message: "Registro exitoso",
+            message: "Participante registrado con éxito en todos los módulosRegistro exitoso",
             participante: participantSaved
         });
 
     } catch (error) {
+      await t.rollback();
         console.error("Error en registro:", error);
         return res.status(500).json({
             status: "error",

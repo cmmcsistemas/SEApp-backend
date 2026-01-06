@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { register, testParticipante, profile, listParticipant, searchParticipant, updateUser, counters } from "../controllers/participantes.js";
+import { register,  profile, listParticipant, searchParticipant, updateUser, counters } from "../controllers/participantes.js";
 import { ensureAuth } from "../middleware/auth.js";
 
 

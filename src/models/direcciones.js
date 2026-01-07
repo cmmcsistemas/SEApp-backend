@@ -43,6 +43,7 @@ prefijo_dos: {
   }
 }, {
   tableName: 'direcciones', // Asegúrate de que este es el nombre de tu tabla
+  timestamps: false, 
 });
 
 export default Direcciones;

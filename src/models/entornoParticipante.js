@@ -8,6 +8,7 @@ const EntornoParticipante = sequelize.define('EntornoParticipante', {
   },
   id_participante: {
     type: DataTypes.INTEGER,
+    primaryKey: true,
     allowNull: false,
   },
     created_at: {

@@ -4,6 +4,7 @@ import sequelize from '../database/database.js';  // Asegúrate de que esta ruta
 const ParticipanteOdp = sequelize.define('ParticipanteOdp', {
   id_participante: {
     type: DataTypes.INTEGER,
+    primaryKey: true,
     allowNull: false
   },
   id_odp: {

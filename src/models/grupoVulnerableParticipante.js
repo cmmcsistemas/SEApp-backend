@@ -4,7 +4,6 @@ import sequelize from '../database/database.js';
 const GrupoVulnerableParticipante = sequelize.define('GrupoVulnerableParticipante', {
   id_grupo: {
     type: DataTypes.INTEGER,
-    primaryKey: true,
     allowNull: false
   },
   id_participante: {

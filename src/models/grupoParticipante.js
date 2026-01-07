@@ -4,6 +4,7 @@ import sequelize from '../database/database.js';  // Asegúrate de que esta ruta
 const GrupoParticipante = sequelize.define('GrupoParticipante', {
   id_grupo: {
     type: DataTypes.INTEGER,
+    primaryKey: true,
     allowNull: false
   },
   id_participante: {

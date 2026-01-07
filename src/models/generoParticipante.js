@@ -4,7 +4,6 @@ import sequelize from '../database/database.js';  // Asegúrate de que esta ruta
 const GeneroParticipante = sequelize.define('GeneroParticipante', {
   id_genero: {
     type: DataTypes.INTEGER,
-    primaryKey: true,
     allowNull: false
   },
   id_participante: {

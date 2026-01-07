@@ -4,7 +4,6 @@ import sequelize from '../database/database.js';  // Asegúrate de que esta ruta
 const DiscapacidadParticipante = sequelize.define('DiscapacidadParticipante', {
   id_discapacidad: {
     type: DataTypes.INTEGER,
-    primaryKey: true,
     allowNull: false
   },
   id_participante: {

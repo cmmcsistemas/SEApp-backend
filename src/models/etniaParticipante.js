@@ -8,6 +8,7 @@ const EtniaParticipante = sequelize.define('EtniaParticipante', {
   },
   id_participante: {
     type: DataTypes.INTEGER,
+    primaryKey: true,
     allowNull: false,
   },
     created_at: {

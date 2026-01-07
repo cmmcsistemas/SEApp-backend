@@ -36,7 +36,7 @@ prefijo_dos: {
     allowNull: true, 
   },
   created_at: {
-    type: DataTypes.Date,
+    type: DataTypes.DATE,
     defaultValue: DataTypes.NOW 
   }
 }, {

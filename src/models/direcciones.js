@@ -37,7 +37,7 @@ prefijo_dos: {
   },
   created_at: {
     type: DataTypes.DATE,
-    defaultValue: DataTypes.NOW 
+    defaultValue: DataTypes.NOW, 
   }
 }, {
   tableName: 'direcciones', // Asegúrate de que este es el nombre de tu tabla

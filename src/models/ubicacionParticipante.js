@@ -4,6 +4,7 @@ import sequelize from '../database/database.js';  // Asegúrate de que esta ruta
 const UbicacionParticipante = sequelize.define('UbicacionParticipante', {
   id_participante: {
     type: DataTypes.INTEGER,
+    primaryKey: true,
     allowNull: true,
   },
   id_pais: {
@@ -24,6 +25,7 @@ const UbicacionParticipante = sequelize.define('UbicacionParticipante', {
   },
 }, {
   tableName: 'ubicacion_participante', // Asegúrate de que este es el nombre de tu tabla
+  timestamps: false,
 });
 
 export default UbicacionParticipante;

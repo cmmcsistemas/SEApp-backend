@@ -6,6 +6,7 @@ const Direcciones = sequelize.define('Direcciones', {
     type: DataTypes.INTEGER,
     primaryKey: true,
     allowNull: false,
+    autoIncrement: true,
   },
   id_participante: {
     type: DataTypes.INTEGER,
@@ -37,7 +38,8 @@ prefijo_dos: {
   },
   created_at: {
     type: DataTypes.DATE,
-    defaultValue: DataTypes.NOW, 
+    allowNull: false,
+    defaultValue: DataTypes.NOW
   }
 }, {
   tableName: 'direcciones', // Asegúrate de que este es el nombre de tu tabla

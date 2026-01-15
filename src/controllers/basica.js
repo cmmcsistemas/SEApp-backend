@@ -9,6 +9,10 @@ import GrupoVulnerable from '../models/grupoVulnerable.js';
 import Departamento from '../models/departamento.js';
 import Localidad from '../models/localidades.js';
 import Ciiu from '../models/ciiu.js';
+import Entornos from '../models/entornos.js';
+import GrupoParticipante from '../models/grupoParticipante.js';
+import GrupoPerteneciente from '../models/grupoPerteneciente.js';
+import GrupoPerteneciente from '../models/grupoPerteneciente.js';
 
 // Crear y guardar un nuevo subproyecto
 export const createSubProyecto = async (req, res) => {
@@ -139,6 +143,47 @@ export const findAllEtnias = async (req, res) => {
     res.status(500).json({ message: 'Error interno del servidor.' });
   }
 };
+
+export const findAllEntornos = async (req, res) => {
+  try {
+    const entorno = await Entornos.findAll({
+      attributes: ['id_entornos', 'tipo_entornos'],
+    });
+
+    res.status(200).json(entorno);
+  } catch (error) {
+    console.error('Error al obtener entornos:', error);
+    res.status(500).json({ message: 'Error interno del servidor.' });
+  }
+};
+
+export const findAllGrupoParticipante = async (req, res) => {
+  try {
+    const grupoParticipante = await GrupoParticipante.findAll({
+      attributes: ['id_grupo', 'id_participante'],
+    });
+
+    res.status(200).json(grupoParticipante);
+  } catch (error) {
+    console.error('Error al obtener grupos o participante:', error);
+    res.status(500).json({ message: 'Error interno del servidor.' });
+  }
+};
+
+export const findAllGrupoPerteneciente = async (req, res) => {
+  try {
+    const grupoPerteneciente = await GrupoPerteneciente.findAll({
+      attributes: ['id_grupo', 'nombre_grupo'],
+    });
+
+    res.status(200).json(grupoPerteneciente);
+  } catch (error) {
+    console.error('Error al obtener grupos:', error);
+    res.status(500).json({ message: 'Error interno del servidor.' });
+  }
+};
+
+
 
 export const findAllDiscapacidades = async (req, res) => {
   try {

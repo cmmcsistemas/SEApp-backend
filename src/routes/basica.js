@@ -1,7 +1,7 @@
 
 import express from 'express';
 import { ensureAuth } from "../middleware/auth.js";
-import {findAllGrupoParticipante, findAllGrupoPerteneciente, findCiiuCode, findAllSubProyectos,findAllLocalidades, findGroupMunicipio, findAllDepartamentos, findAllDiscapacidades, findAllGrupoVulnerable, findAllEtnias, findAllPaises, findAllGeneros, findAllMunicipios, findOneSubProyecto, createSubProyecto, updateSubProyecto, deleteSubProyecto} from "../controllers/basica.js";
+import {findAllEntornos, findAllGrupoParticipante, findAllGrupoPerteneciente, findCiiuCode, findAllSubProyectos,findAllLocalidades, findGroupMunicipio, findAllDepartamentos, findAllDiscapacidades, findAllGrupoVulnerable, findAllEtnias, findAllPaises, findAllGeneros, findAllMunicipios, findOneSubProyecto, createSubProyecto, updateSubProyecto, deleteSubProyecto} from "../controllers/basica.js";
 
 const router = express.Router();
 // Ruta para crear un nuevo subproyecto
@@ -19,6 +19,7 @@ router.get('/discapacidades', findAllDiscapacidades);
 router.get('/vulnerable', findAllGrupoVulnerable);
 router.get('/grupoPerteneciente', findAllGrupoPerteneciente);
 router.get('/grupoParticipante', findAllGrupoParticipante);
+router.get('/entornos',findAllEntornos);
 
 // Rutas que tienen llaves foraneas
 router.get('/municipios/:id', findGroupMunicipio);

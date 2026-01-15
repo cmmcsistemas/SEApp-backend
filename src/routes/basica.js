@@ -1,7 +1,7 @@
 
 import express from 'express';
 import { ensureAuth } from "../middleware/auth.js";
-import {findAllGrupoParticipante, findAllGrupoPerteneciente, findCiiuCode, findAllSubProyectos,findAllLocalidades, findGroupMunicipio, findAllDepartamentos, findAllDiscapacidades, findAllGrupoVulnerable, findAllEtnias, findAllPaises, findAllGeneros, findAllMunicipios, findOneSubProyecto, createSubProyecto, updateSubProyecto, deleteSubProyecto, findAllGrupoPertenneciente, findAllGrupoParticipante} from "../controllers/basica.js";
+import {findAllGrupoParticipante, findAllGrupoPerteneciente, findCiiuCode, findAllSubProyectos,findAllLocalidades, findGroupMunicipio, findAllDepartamentos, findAllDiscapacidades, findAllGrupoVulnerable, findAllEtnias, findAllPaises, findAllGeneros, findAllMunicipios, findOneSubProyecto, createSubProyecto, updateSubProyecto, deleteSubProyecto} from "../controllers/basica.js";
 
 const router = express.Router();
 // Ruta para crear un nuevo subproyecto

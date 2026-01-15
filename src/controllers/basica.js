@@ -12,7 +12,7 @@ import Ciiu from '../models/ciiu.js';
 import Entornos from '../models/entornos.js';
 import GrupoParticipante from '../models/grupoParticipante.js';
 import GrupoPerteneciente from '../models/grupoPerteneciente.js';
-import GrupoPerteneciente from '../models/grupoPerteneciente.js';
+
 
 // Crear y guardar un nuevo subproyecto
 export const createSubProyecto = async (req, res) => {
@@ -182,7 +182,6 @@ export const findAllGrupoPerteneciente = async (req, res) => {
     res.status(500).json({ message: 'Error interno del servidor.' });
   }
 };
-
 
 
 export const findAllDiscapacidades = async (req, res) => {

@@ -147,7 +147,7 @@ export const findAllEtnias = async (req, res) => {
 export const findAllEntornos = async (req, res) => {
   try {
     const entorno = await Entornos.findAll({
-      attributes: ['id_entornos', 'tipo_entornos'],
+      attributes: ['id_entorno', 'tipo_entorno'],
     });
 
     res.status(200).json(entorno);

@@ -17,7 +17,7 @@ const Login = sequelize.define('Login', {
     //   key: 'id_usuario' // Clave primaria en el modelo de Usuarios
     // }
   },
-  password: {
+  password_hash: {
     type: DataTypes.STRING, // Almacenará la contraseña HASHEADA
     allowNull: false
   },

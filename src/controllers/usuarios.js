@@ -122,7 +122,7 @@ export const login = async (req, res) => {
         // Esto poblará tu tabla vacía con el historial de accesos
         await Login.create({
             id_usuario: userBD.id_usuario,
-            password: userBD.contrasena, // Guardamos el hash actual
+            password_hash: userBD.contrasena, // Guardamos el hash actual
             token: token,                // Guardamos el token generado
             fecha_ingreso: new Date()    // Fecha y hora actual
         });

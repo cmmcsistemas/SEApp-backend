@@ -1,5 +1,6 @@
 
 import User from "../models/usuarios.js";
+import Login from "../models/login.js";
 //import Follow from "../models/follows.js";
 //import Publication from "../models/publications.js";
 import bcrypt from "bcryptjs";
@@ -81,67 +82,94 @@ export const register = async (req, res) => {
 
 // Método de Login (usar JWT)
 export const login = async (req, res) => {
-  try {
+    try {
+        const { email, password } = req.body;
 
-    // Obtener los parámetros del body (enviados en la petición)
-    let params = req.body;
+        // 1. Validaciones iniciales
+        if (!email || !password) {
+            return res.status(400).json({
+                status: "error",
+                message: "Email y password son obligatorios"
+            });
+        }
 
-    // Validar que si recibimos el email y el password
-    if (!params.email || !params.password) {
-      return res.status(400).send({
-        status: "error",
-        message: "Faltan datos por enviar email o password"
-      });
+        // 2. Buscar usuario en la tabla 'usuarios'
+        const userBD = await User.findOne({ 
+            where: { email: email.toLowerCase() } 
+        });
+
+        if (!userBD) {
+            return res.status(404).json({
+                status: "error",
+                message: "Usuario no encontrado"
+            });
+        }
+
+        // 3. Comprobar contraseña (usando el campo 'contrasena' de tu modelo User)
+        const validPassword = await bcrypt.compare(password, userBD.contrasena);
+
+        if (!validPassword) {
+            return res.status(401).json({
+                status: "error",
+                message: "Contraseña incorrecta"
+            });
+        }
+
+        // 4. Generar el Token JWT
+        const token = createToken(userBD);
+
+        // 5. REGISTRO DE INGRESO: Insertar en la tabla 'login'
+        // Esto poblará tu tabla vacía con el historial de accesos
+        await Login.create({
+            id_usuario: userBD.id_usuario,
+            password: userBD.contrasena, // Guardamos el hash actual
+            token: token,                // Guardamos el token generado
+            fecha_ingreso: new Date()    // Fecha y hora actual
+        });
+
+        // 6. Respuesta al cliente
+        return res.status(200).json({
+            status: "success",
+            message: "Autenticación exitosa y registro de ingreso guardado",
+            token,
+            user: {
+                id: userBD.id_usuario,
+                nombre: userBD.nombre,
+                email: userBD.email
+            }
+        });
+
+    } catch (error) {
+        console.error("Error en el proceso de login/registro:", error);
+        return res.status(500).json({
+            status: "error",
+            message: "Hubo un error al procesar el ingreso",
+            error: error.message
+        });
     }
+};
 
-    // Buscar en la BD si existe el email registrado
-    const userBD = await User.findOne({ email: params.email.toLowerCase() });
+export const logout = async (req, res) => {
+    try {
+        const id_usuario = req.user.id; // Suponiendo que tu middleware 'ensureAuth' te da el ID
 
-    // Si no existe el usuario buscado
-    if (!userBD) {
-      return res.status(404).send({
-        status: "error",
-        message: "Usuario no encontrado"
-      });
+        // Actualizar el último registro que no tenga fecha de salida
+        await Login.update(
+            { fecha_salida: new Date() },
+            { 
+                where: { 
+                    id_usuario: id_usuario,
+                    fecha_salida: null 
+                },
+                order: [['fecha_ingreso', 'DESC']],
+                limit: 1
+            }
+        );
+
+        return res.status(200).json({ status: "success", message: "Salida registrada" });
+    } catch (error) {
+        return res.status(500).json({ status: "error", message: "Error al cerrar sesión" });
     }
-
-    // Comprobar su contraseña
-    const validPassword = await bcrypt.compare(params.password, userBD.password);
-
-    // Si la contraseña es incorrecta (false)
-    if (!validPassword) {
-      return res.status(401).send({
-        status: "error",
-        message: "Contraseña incorrecta"
-      });
-    }
-
-    // Generar token de autenticación (JWT)
-    const token = createToken(userBD);
-
-    // Devolver respuesta de login exitoso
-    return res.status(200).json({
-      status: "success",
-      message: "Autenticaciónv exitosa",
-      token,
-      userBD: {
-        id: userBD._id,
-        name: userBD.name,
-        last_name: userBD.last_name,
-        email: userBD.email,
-        nick: userBD.nick,
-        image: userBD.image
-      }
-    });
-
-  } catch (error) {
-    console.log("Error en la autenticación del usuario: ", error);
-    // Devolver mensaje de error
-    return res.status(500).send({
-      status: "error",
-      message: "Error en la autenticación del usuario"
-    });
-  }
 };
 
 export const profile = async (req,res) => {

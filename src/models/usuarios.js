@@ -49,7 +49,7 @@ const User = sequelize.define('User', {
       allowNull: true // Puede ser nulo
     },
     contrasena: {
-      type: DataTypes.STRING(20), // Asumo que es el hash de la contraseña, no la contraseña en texto plano
+      type: DataTypes.STRING(255), // Asumo que es el hash de la contraseña, no la contraseña en texto plano
       allowNull: false
     }
   }, {

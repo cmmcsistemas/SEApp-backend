@@ -11,20 +11,10 @@ const Login = sequelize.define('Login', {
     type: DataTypes.INTEGER,
     primaryKey: true, // Asumiendo que id_usuario es la clave primaria aquí
     allowNull: false,
-    // Si 'id_usuario' es una clave foránea a una tabla de 'Usuarios'
-    // references: {
-    //   model: 'Usuario', // Nombre del modelo de Usuarios
-    //   key: 'id_usuario' // Clave primaria en el modelo de Usuarios
-    // }
   },
   id_usuario: {
     type: DataTypes.INTEGER,
     allowNull: false,
-    // Si 'id_usuario' es una clave foránea a una tabla de 'Usuarios'
-    // references: {
-    //   model: 'Usuario', // Nombre del modelo de Usuarios
-    //   key: 'id_usuario' // Clave primaria en el modelo de Usuarios
-    // }
   },
   password_hash: {
     type: DataTypes.STRING, // Almacenará la contraseña HASHEADA

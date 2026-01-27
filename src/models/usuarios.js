@@ -14,15 +14,15 @@ const User = sequelize.define('User', {
     },
     id_director: {
       type: DataTypes.INTEGER,
-      allowNull: false
+      allowNull: true
     },
     id_coordinador: {
       type: DataTypes.INTEGER,
-      allowNull: false
+      allowNull: true
     },
     id_supervisor: {
       type: DataTypes.INTEGER,
-      allowNull: false
+      allowNull: true
     },
     nombre: {
       type: DataTypes.STRING,

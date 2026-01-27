@@ -7,9 +7,18 @@ import sequelize from '../database/database.js';  // Asegúrate de que esta ruta
 // El 'password' en este modelo representa el campo donde iría la contraseña HASHEADA.
 
 const Login = sequelize.define('Login', {
-  id_usuario: {
+  id_login:{
     type: DataTypes.INTEGER,
     primaryKey: true, // Asumiendo que id_usuario es la clave primaria aquí
+    allowNull: false,
+    // Si 'id_usuario' es una clave foránea a una tabla de 'Usuarios'
+    // references: {
+    //   model: 'Usuario', // Nombre del modelo de Usuarios
+    //   key: 'id_usuario' // Clave primaria en el modelo de Usuarios
+    // }
+  },
+  id_usuario: {
+    type: DataTypes.INTEGER,
     allowNull: false,
     // Si 'id_usuario' es una clave foránea a una tabla de 'Usuarios'
     // references: {

@@ -32,7 +32,7 @@ const User = sequelize.define('User', {
       type: DataTypes.STRING,
       allowNull: false
     },
-    documento: {
+    cedula: {
         type: DataTypes.INTEGER,
         allowNull: false // Asumo que estos campos pueden ser nulos si no siempre están presentes
       },

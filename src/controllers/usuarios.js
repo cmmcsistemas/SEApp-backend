@@ -1,7 +1,6 @@
 
 import User from "../models/usuarios.js";
 import Login from "../models/login.js";
-import bcrypt from 'bcrypt';
 //import Follow from "../models/follows.js";
 //import Publication from "../models/publications.js";
 import bcrypt from "bcryptjs";

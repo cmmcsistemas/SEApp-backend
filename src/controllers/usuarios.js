@@ -1,6 +1,7 @@
 
 import User from "../models/usuarios.js";
 import Login from "../models/login.js";
+
 //import Follow from "../models/follows.js";
 //import Publication from "../models/publications.js";
 import bcrypt from "bcryptjs";
@@ -151,24 +152,44 @@ export const login = async (req, res) => {
 
 export const logout = async (req, res) => {
     try {
-        const id_usuario = req.user.id; // Suponiendo que tu middleware 'ensureAuth' te da el ID
+        // Obtenemos el ID del usuario desde el token (vía middleware auth)
+        // Asegúrate de que tu middleware guarde el id como 'id_usuario'
+        const id_usuario = req.user.userId; 
 
-        // Actualizar el último registro que no tenga fecha de salida
-        await Login.update(
+        // Actualizar el registro de la tabla 'login'
+        // Buscamos el registro de este usuario donde la fecha_salida aún sea NULL
+        const [updatedRows] = await Login.update(
             { fecha_salida: new Date() },
             { 
                 where: { 
                     id_usuario: id_usuario,
                     fecha_salida: null 
                 },
+                // Ordenamos por ingreso descendente para cerrar la sesión más reciente
                 order: [['fecha_ingreso', 'DESC']],
                 limit: 1
             }
         );
 
-        return res.status(200).json({ status: "success", message: "Salida registrada" });
+        if (updatedRows === 0) {
+            return res.status(404).json({
+                status: "error",
+                message: "No se encontró una sesión activa para cerrar"
+            });
+        }
+
+        return res.status(200).json({ 
+            status: "success", 
+            message: "Salida registrada correctamente" 
+        });
+
     } catch (error) {
-        return res.status(500).json({ status: "error", message: "Error al cerrar sesión" });
+        console.error("Error en logout:", error);
+        return res.status(500).json({ 
+            status: "error", 
+            message: "Error al cerrar sesión",
+            error: error.message 
+        });
     }
 };
 

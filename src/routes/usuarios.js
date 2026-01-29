@@ -9,7 +9,7 @@ const router = Router();
 router.get('/test-user',  testUser);
 router.post('/register', register);
 router.post('/login', login);
-router.post('/logout', logout);
+router.post('/logout',ensureAuth, logout);
 //router.get('/profile/:id', ensureAuth, profile);
 //router.get('/list/:page?', ensureAuth, listUsers);
 //router.put('/update', ensureAuth, updateUser);

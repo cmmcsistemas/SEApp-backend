@@ -9,7 +9,8 @@ import sequelize from '../database/database.js';  // Asegúrate de que esta ruta
 const Login = sequelize.define('Login', {
   id_login:{
     type: DataTypes.INTEGER,
-    primaryKey: true, // Asumiendo que id_usuario es la clave primaria aquí
+    primaryKey: true,
+    autoIncrement: true, // Asumiendo que id_usuario es la clave primaria aquí
     allowNull: false,
   },
   id_usuario: {

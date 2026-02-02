@@ -31,8 +31,6 @@ const RespuestasFormulario = sequelize.define('RespuestasFormulario', {
     type: DataTypes.DATE,
     allowNull: true,
   },
-
-
 }, {
   tableName: 'respuestas_formulario', // Nombre de la tabla en la base de datos
   timestamps: false // Deshabilita los timestamps automáticos de Sequelize

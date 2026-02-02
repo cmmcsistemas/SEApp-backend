@@ -96,7 +96,7 @@ export const register = async (req, res) => {
             GrupoVulnerableParticipante.create({ id_participante: pId, id_grupo: id_grupo_vulnerable }, { transaction: t }),
 
             // Proyecto Asignado
-            ProyectosAsignados.create({id_participante: pId, id_proyecto}, { transaction: t }),
+            ProyectosAsignados.create({ id_proyecto: id_proyecto, id_participante: pId}, { transaction: t }),
 
             // Ubicación
             UbicacionParticipante.create({

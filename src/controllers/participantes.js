@@ -125,7 +125,9 @@ export const register = async (req, res) => {
         return res.status(201).json({
             status: "success",
             message: "Participante registrado con éxito en todos los módulosRegistro exitoso",
-            participante: participantSaved
+            participante: participantSaved,
+            formulario: cabeceraForm
+
         });
 
     } catch (error) {
@@ -136,6 +138,50 @@ export const register = async (req, res) => {
         return res.status(500).json({
             status: "error",
             message: "Error interno del servidor",
+            error: error.message
+        });
+    }
+};
+
+export const saveAdditionalData = async (req, res) => {
+    const { id_respuesta, formulario_data } = req.body;
+
+    // 1. Validación de datos mínimos
+    if (!id_respuesta || !formulario_data || !Array.isArray(formulario_data)) {
+        return res.status(400).json({
+            status: "error",
+            message: "Faltan datos obligatorios (id_respuesta o formulario_data)"
+        });
+    }
+
+    const t = await sequelize.transaction();
+
+    try {
+        // 2. Mapeo de los nuevos campos vinculados al id_respuesta existente
+        const nuevasRespuestas = formulario_data.map(item => ({
+            id_respuesta: id_respuesta, // Usamos el ID que ya tenemos
+            id_campo: item.id_campo,
+            valor: item.valor,
+            created_at: new Date()
+        }));
+
+        // 3. Inserción masiva (BulkCreate)
+        // Usamos bulkCreate para que sea eficiente con muchos campos
+        await DatosRespuesta.bulkCreate(nuevasRespuestas, { transaction: t });
+
+        await t.commit();
+
+        return res.status(200).json({
+            status: "success",
+            message: "Módulo del formulario guardado correctamente"
+        });
+
+    } catch (error) {
+        if (t) await t.rollback();
+        console.error("Error al guardar módulo adicional:", error);
+        return res.status(500).json({
+            status: "error",
+            message: "Error al procesar los datos adicionales",
             error: error.message
         });
     }

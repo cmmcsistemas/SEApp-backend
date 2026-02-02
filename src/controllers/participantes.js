@@ -16,6 +16,7 @@ import UbicacionParticipante from "../models/ubicacionParticipante.js";
 import ProyectosAsignados from "../models/proyectosAsignados.js";
 import RespuestasFormulario from "../models/respuestasFormulario.js";
 import DatoRespuesta from "../models/datosRespuesta.js";
+import SubProyectoParticipante from "../models/subProyectoParticipante.js";
 
 
 //import { followThisUser, followUserIds } from "../services/followServices.js";
@@ -23,7 +24,7 @@ import DatoRespuesta from "../models/datosRespuesta.js";
 // Registrar un unico usuario en la tabla participantes
 export const register = async (req, res) => {
 
-  const { nombre, apellido, documento, email, telefono, fecha_nacimiento, id_direccion_info, id_discapacidad, id_entorno, id_etnia, id_genero, id_grupo, id_grupo_vulnerable, id_proyecto, ubicacion_info, formulario_data} = req.body;
+  const { nombre, apellido, documento, email, telefono, fecha_nacimiento, id_direccion_info, id_discapacidad, id_entorno, id_etnia, id_genero, id_grupo, id_grupo_vulnerable, id_subproyecto, ubicacion_info, formulario_data} = req.body;
 
         // 1. Validación de presencia
         if (!nombre || !apellido || !documento || !email || !telefono || !fecha_nacimiento) {
@@ -96,7 +97,7 @@ export const register = async (req, res) => {
             GrupoVulnerableParticipante.create({ id_participante: pId, id_grupo: id_grupo_vulnerable }, { transaction: t }),
 
             // Proyecto Asignado
-            ProyectosAsignados.create({ id_proyecto: id_proyecto, id_participante: pId}, { transaction: t }),
+            SubProyectoParticipante.create({ id_subproyecto: id_subproyecto, id_participante: pId}, { transaction: t }),
 
             // Ubicación
             UbicacionParticipante.create({

@@ -16,7 +16,7 @@ import UbicacionParticipante from "../models/ubicacionParticipante.js";
 import ProyectosAsignados from "../models/proyectosAsignados.js";
 import RespuestasFormulario from "../models/respuestasFormulario.js";
 import DatoRespuesta from "../models/datosRespuesta.js";
-import ProyectosAsignados from "../models/proyectosAsignados.js";
+
 
 //import { followThisUser, followUserIds } from "../services/followServices.js";
 

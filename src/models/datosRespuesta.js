@@ -29,6 +29,11 @@ const DatoRespuesta = sequelize.define('DatoRespuesta', {
   valor: {
     type: DataTypes.TEXT, // Usamos TEXT para almacenar diversos tipos de valores (texto largo, JSON, etc.)
     allowNull: true // Puede ser nulo si un campo no fue respondido o es opcional
+  },
+  created_at: {
+    type: DataTypes.DATE,
+    allowNull: false,
+    defaultValue: DataTypes.NOW
   }
 }, {
   tableName: 'datos_respuesta', // Nombre de la tabla en la base de datos

@@ -14,12 +14,15 @@ import GrupoParticipante from "../models/grupoParticipante.js";
 import GrupoVulnerableParticipante from "../models/grupoVulnerableParticipante.js";
 import UbicacionParticipante from "../models/ubicacionParticipante.js";
 import ProyectosAsignados from "../models/proyectosAsignados.js";
+import RespuestasFormulario from "../models/respuestasFormulario.js";
+import DatoRespuesta from "../models/datosRespuesta.js";
 
 //import { followThisUser, followUserIds } from "../services/followServices.js";
 
 // Registrar un unico usuario en la tabla participantes
 export const register = async (req, res) => {
-           const { nombre, apellido, documento, email, telefono, fecha_nacimiento, id_direccion_info, id_discapacidad, id_entorno, id_etnia, id_genero, id_grupo, id_grupo_vulnerable, ubicacion_info} = req.body;
+
+  const { nombre, apellido, documento, email, telefono, fecha_nacimiento, id_direccion_info, id_discapacidad, id_entorno, id_etnia, id_genero, id_grupo, id_grupo_vulnerable, ubicacion_info} = req.body;
 
         // 1. Validación de presencia
         if (!nombre || !apellido || !documento || !email || !telefono || !fecha_nacimiento) {
@@ -57,8 +60,16 @@ export const register = async (req, res) => {
 
         const pId = participantSaved.id_participante;
 
-        await Promise.all(
-          [
+        //respuestas_formulario
+        const cabeceraForm = await RespuestasFormulario.create({
+          id_participante: pId,
+          id_formulario: 1, // Valor fijo según tu requerimiento
+          fecha_respuesta: new Date()
+        }, { transaction: t});
+
+        const rId = cabeceraForm.id_respuesta;
+        
+        const promesas = [
             // Direcciones
             Direcciones.create({
                 id_participante: pId,
@@ -88,8 +99,20 @@ export const register = async (req, res) => {
                 id_participante: pId,
                 ...ubicacion_info // id_pais, id_municipio, id_departamento, id_localidad
             }, { transaction: t })
-          ]
-        );
+          ];
+
+        if (formulario_data && formulario_data.length > 0) {
+        const mapeoRespuestas = formulario_data.map(item => ({
+          id_respuesta: rId, // Vinculamos al ID autoincremental que acabamos de crear
+          id_campo: item.id_campo,
+          valor: item.valor,
+          created_at: new Date()
+        }));
+        
+          promesas.push(DatoRespuesta.bulkCreate(mapeoRespuestas, { transaction: t }));
+         }
+        await Promise.all(promesas);
+
 
         await t.commit();
 

@@ -22,7 +22,7 @@ import DatoRespuesta from "../models/datosRespuesta.js";
 // Registrar un unico usuario en la tabla participantes
 export const register = async (req, res) => {
 
-  const { nombre, apellido, documento, email, telefono, fecha_nacimiento, id_direccion_info, id_discapacidad, id_entorno, id_etnia, id_genero, id_grupo, id_grupo_vulnerable, ubicacion_info} = req.body;
+  const { nombre, apellido, documento, email, telefono, fecha_nacimiento, id_direccion_info, id_discapacidad, id_entorno, id_etnia, id_genero, id_grupo, id_grupo_vulnerable, ubicacion_info, formulario_data} = req.body;
 
         // 1. Validación de presencia
         if (!nombre || !apellido || !documento || !email || !telefono || !fecha_nacimiento) {

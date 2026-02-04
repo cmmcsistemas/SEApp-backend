@@ -167,7 +167,7 @@ export const saveAdditionalData = async (req, res) => {
 
         // 3. Inserción masiva (BulkCreate)
         // Usamos bulkCreate para que sea eficiente con muchos campos
-        await DatosRespuesta.bulkCreate(nuevasRespuestas, { transaction: t });
+        await DatoRespuesta.bulkCreate(nuevasRespuestas, { transaction: t });
 
         await t.commit();
 

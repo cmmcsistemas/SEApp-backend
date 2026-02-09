@@ -483,7 +483,7 @@ export const saveAdditionalData = async (req, res) => {
             where: { id_participante: id_participante },
             attributes: ['id_respuesta', 'id_participante'], // Solo lo que pediste
             include: [{
-                model: DatosRespuesta,
+                model: DatoRespuesta,
                 as: 'detalles',
                 attributes: ['id_dato', 'id_campo', 'valor'] // Solo los campos necesarios
             }],

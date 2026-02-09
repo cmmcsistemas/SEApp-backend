@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { register, saveAdditionalData, profile, listParticipant, searchParticipant, updateUser, counters } from "../controllers/participantes.js";
+import { register, getFormularioCompleto,saveAdditionalData, profile, listParticipant, searchParticipant, updateUser, counters } from "../controllers/participantes.js";
 import { ensureAuth } from "../middleware/auth.js";
 
 
@@ -12,6 +12,8 @@ router.post('/add-data', saveAdditionalData);
 router.get('/list', listParticipant);
 router.get('/list/:page', listParticipant);
 router.get('/search', searchParticipant);
+// routes/participantes.js
+router.get('/formulario-completo/:id_participante', ensureAuth, getFormularioCompleto);
 //router.post('/login', login);
 //router.get('/profile/:id', ensureAuth, profile);
 

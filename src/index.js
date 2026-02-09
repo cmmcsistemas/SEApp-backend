@@ -16,7 +16,7 @@ dotenv.config();
 console.log("API node en ejecucion");
 
 // Un formulario tiene muchos datos de respuesta
-RespuestasFormulario.hasMany(DatosRespuesta, { foreignKey: 'id_respuesta', as: 'detalles' });
+RespuestasFormulario.hasMany(DatoRespuesta, { foreignKey: 'id_respuesta', as: 'detalles' });
 // Cada dato de respuesta pertenece a una cabecera
 DatoRespuesta.belongsTo(RespuestasFormulario, { foreignKey: 'id_respuesta' });
 //sequelize();

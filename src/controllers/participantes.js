@@ -477,11 +477,24 @@ export const saveAdditionalData = async (req, res) => {
 
   export const getFormularioCompleto = async (req, res) => {
     try {
-        const { id_participante } = req.params; // Lo recibimos por URL
+        const { id_participante, id_respuesta } = req.query;// Lo recibimos por URL
+
+
+        const filtro = {};
+        if (id_participante) filtro.id_participante = id_participante;
+        if (id_respuesta) filtro.id_respuesta = id_respuesta;
+
+        // Validamos que al menos uno de los dos venga en la petición
+        if (Object.keys(filtro).length === 0) {
+            return res.status(400).json({
+                status: "error",
+                message: "Debes proporcionar id_participante o id_respuesta"
+            });
+        }
 
         const formulario = await RespuestasFormulario.findOne({
-            where: { id_participante: id_participante },
-            attributes: ['id_respuesta', 'id_participante'], // Solo lo que pediste
+            where: filtro,
+            attributes: ['id_respuesta', 'id_participante', 'id_formulario', 'fecha_respuesta'], // Solo lo que pediste
             include: [{
                 model: DatoRespuesta,
                 as: 'detalles',

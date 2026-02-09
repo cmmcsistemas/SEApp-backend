@@ -13,7 +13,7 @@ router.get('/list', listParticipant);
 router.get('/list/:page', listParticipant);
 router.get('/search', searchParticipant);
 // routes/participantes.js
-router.get('/formulario-completo/:id_participante', ensureAuth, getFormularioCompleto);
+router.get('/formulario-completo/', ensureAuth, getFormularioCompleto);
 //router.post('/login', login);
 //router.get('/profile/:id', ensureAuth, profile);
 

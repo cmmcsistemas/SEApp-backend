@@ -38,6 +38,7 @@ const DatoRespuesta = sequelize.define('DatoRespuesta', {
 }, {
   tableName: 'datos_respuesta', // Nombre de la tabla en la base de datos
   timestamps: false // Deshabilita los timestamps automáticos de Sequelize
+  
 });
 
 export default DatoRespuesta;

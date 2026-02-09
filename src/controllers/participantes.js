@@ -471,3 +471,43 @@ export const saveAdditionalData = async (req, res) => {
     }
 };
 
+  export const searchParticipantForm = async (req, res) => {
+
+  }
+
+  export const getFormularioCompleto = async (req, res) => {
+    try {
+        const { id_participante } = req.params; // Lo recibimos por URL
+
+        const formulario = await RespuestasFormulario.findOne({
+            where: { id_participante: id_participante },
+            attributes: ['id_respuesta', 'id_participante'], // Solo lo que pediste
+            include: [{
+                model: DatosRespuesta,
+                as: 'detalles',
+                attributes: ['id_dato', 'id_campo', 'valor'] // Solo los campos necesarios
+            }],
+            order: [['id_respuesta', 'DESC']] // Trae el más reciente primero
+        });
+
+        if (!formulario) {
+            return res.status(404).json({
+                status: "error",
+                message: "No se encontraron formularios para este participante"
+            });
+        }
+
+        return res.status(200).json({
+            status: "success",
+            data: formulario
+        });
+
+    } catch (error) {
+        console.error("Error al obtener formulario:", error);
+        return res.status(500).json({
+            status: "error",
+            message: "Error interno del servidor",
+            error: error.message
+        });
+    }
+};

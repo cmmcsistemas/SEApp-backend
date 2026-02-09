@@ -8,13 +8,17 @@ import UsuarioRoutes from "./routes/usuarios.js";
 import formulariosRoutes from "./routes/formularios.js";
 import basicaRoutes from "./routes/basica.js";
 import planesFormacion from "./routes/planesFormacion.js";
-
+import RespuestasFormulario from "./models/respuestasFormulario.js";
+import DatoRespuesta from "./models/datosRespuesta.js";
 import FollowRoutes from "./routes/login.js";
 
 dotenv.config();
 console.log("API node en ejecucion");
 
-
+// Un formulario tiene muchos datos de respuesta
+RespuestasFormulario.hasMany(DatosRespuesta, { foreignKey: 'id_respuesta', as: 'detalles' });
+// Cada dato de respuesta pertenece a una cabecera
+DatoRespuesta.belongsTo(RespuestasFormulario, { foreignKey: 'id_respuesta' });
 //sequelize();
 
 

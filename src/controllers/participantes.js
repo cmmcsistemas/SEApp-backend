@@ -433,6 +433,11 @@ export const saveAdditionalData = async (req, res) => {
                     nombre: {
                         [Op.like]: `%${searchQuery}%`
                     }
+                },
+                {
+                    id_participante: {
+                        [Op.like]: `%${searchQuery}%`
+                    }
                 }
             ]
         };

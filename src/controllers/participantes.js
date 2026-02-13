@@ -17,6 +17,7 @@ import ProyectosAsignados from "../models/proyectosAsignados.js";
 import RespuestasFormulario from "../models/respuestasFormulario.js";
 import DatoRespuesta from "../models/datosRespuesta.js";
 import SubProyectoParticipante from "../models/subProyectoParticipante.js";
+import VistaParticipanteDetalles from "../models/vistaParticipantesBasica.js";
 
 
 //import { followThisUser, followUserIds } from "../services/followServices.js";
@@ -443,9 +444,9 @@ export const saveAdditionalData = async (req, res) => {
         };
         
         // 3. Ejecutar la consulta
-        const participants = await Participante.findAll({
+        const participants = await VistaParticipanteDetalles.findAll({
             where: searchCondition,
-            attributes: ['id_participante', 'nombre', 'apellido', 'documento', 'email', 'telefono', 'fecha_nacimiento']
+            attributes: ['id_participante', 'nombre', 'apellido', 'documento', 'email', 'telefono', 'fecha_nacimiento','nombre_subproyecto','tipo_genero','tipo_entorno','tipo_discapacidad','tipo_etnia','tipo_grupo','nombre_grupo','direccion','nombre_pais','nombre_departamento','nombre_municipio','nombre_localidad']
             // Puedes añadir 'order' si necesitas ordenar los resultados
             // order: [['nombre', 'ASC']]
         });

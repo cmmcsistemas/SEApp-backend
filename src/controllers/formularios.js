@@ -34,10 +34,12 @@ export const getCamposFormulario = async (req, res) => {
 // Nuevo método para obtener campos por tipo
 export const getCamposPorTipo = async (req, res) => {
     try {
+
+      const { id_tipo } = req.params;
       // Busca todos los campos que tengan id_tipo = 2
       const campos = await CampoFormulario.findAll({
         where: {
-          id_tipo: 2
+          id_tipo: id_tipo
         },
         attributes: ['id_campo', 'nombre_campo', 'opciones'] // Selecciona solo las columnas que necesitas
       });
@@ -55,7 +57,7 @@ export const getCamposPorTipo = async (req, res) => {
         });
         res.status(200).json(camposProcesados);
       } else {
-        res.status(404).json({ message: 'No se encontraron campos con id_tipo = 2.' });
+        res.status(404).json({ message: `No se encontraron campos con id_tipo = ${id_tipo}.`});
       }
     } catch (error) {
       console.error('Error al obtener campos por tipo:', error);

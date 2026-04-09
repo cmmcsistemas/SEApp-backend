@@ -21,7 +21,97 @@ import VistaParticipanteDetalles from "../models/vistaParticipantesBasica.js";
 
 
 //import { followThisUser, followUserIds } from "../services/followServices.js";
+// Registro basico de participante
+export const basicRegister = async (req, res) => {
 
+  const { nombre, apellido, documento, email, telefono, fecha_nacimiento, formulario_data} = req.body;
+
+        // 1. Validación de presencia
+        if (!nombre || !apellido || !documento || !email || !telefono || !fecha_nacimiento) {
+            return res.status(400).json({
+                status: "error",
+                message: "Faltan datos obligatorios"
+            });
+        }
+
+        const t = await sequelize.transaction();
+  
+  try {
+        // 2. Control de duplicados (Usando params específicos para evitar errores)
+        const existingParticipant = await Participante.findOne({
+            where: { documento: documento }
+        });
+
+        if (existingParticipant) {
+            await t.rollback();
+            return res.status(409).json({
+                status: "error",
+                message: "El participante con este documento ya existe"
+            });
+        }
+
+        // 3. Guardar (Solo los campos permitidos)
+        const participantSaved = await Participante.create({
+            nombre,
+            apellido,
+            documento,
+            email,
+            telefono,
+            fecha_nacimiento
+        }, {transaction: t});
+
+        const pId = participantSaved.id_participante;
+
+        //respuestas_formulario
+        const cabeceraForm = await RespuestasFormulario.create({
+          id_participante: pId,
+          id_formulario: 1, // Valor fijo según tu requerimiento
+          fecha_respuesta: new Date()
+        }, { transaction: t});
+
+        const rId = cabeceraForm.id_respuesta;
+        
+        const promesas = [
+            
+
+          ];
+
+        if (formulario_data && formulario_data.length > 0) {
+        const mapeoRespuestas = formulario_data.map(item => ({
+          id_respuesta: rId, // Vinculamos al ID autoincremental que acabamos de crear
+          id_campo: item.id_campo,
+          valor: item.valor,
+          created_at: new Date()
+        }));
+        
+          promesas.push(DatoRespuesta.bulkCreate(mapeoRespuestas, { transaction: t }));
+         }
+        await Promise.all(promesas);
+
+
+        await t.commit();
+
+        // 4. Respuesta limpia
+        return res.status(201).json({
+            status: "success",
+            message: "Participante registrado con éxito en todos los módulosRegistro exitoso",
+            participante: participantSaved,
+            formulario: cabeceraForm
+
+        });
+
+    } catch (error) {
+      if (t && !t.finished) {
+            await t.rollback();
+        }
+        console.error("Error en registro:", error);
+        return res.status(500).json({
+            status: "error",
+            message: "Error interno del servidor",
+            error: error.message
+        });
+    }
+};
 // Registrar un unico usuario en la tabla participantes
 export const register = async (req, res) => {
 
@@ -143,6 +233,7 @@ export const register = async (req, res) => {
         });
     }
 };
+
 
 export const saveAdditionalData = async (req, res) => {
     const { id_respuesta, formulario_data } = req.body;

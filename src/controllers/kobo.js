@@ -1,8 +1,8 @@
 import axios from 'axios';
 import sequelize from '../database/database.js';
-import Participante from '../models/participantes';
-import DatoRespuesta from '../models/datosRespuesta';
-import RespuestasFormulario from '../models/respuestasFormulario';
+import Participante from '../models/participantes.js';
+import DatoRespuesta from '../models/datosRespuesta.js';
+import RespuestasFormulario from '../models/respuestasFormulario.js';
 
 
 export const getEnketoPreview = async (req, res) => {

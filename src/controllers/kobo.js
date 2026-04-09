@@ -1,5 +1,5 @@
 import axios from 'axios';
-import sequelize from '../database/database';
+import sequelize from '../database/database.js';
 import Participante from '../models/participantes';
 import DatoRespuesta from '../models/datosRespuesta';
 import RespuestasFormulario from '../models/respuestasFormulario';

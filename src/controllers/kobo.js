@@ -95,7 +95,7 @@ export const recibirDatosKobo = async (req, res) => {
         // 3. Crear la Cabecera del Formulario (respuestas_formulario)
         const cabeceraForm = await RespuestasFormulario.create({
             id_participante: pId,
-            id_formulario: 1, // ID para Caracterización Básica
+            id_formulario: 3, // ID para Caracterización Básica
             // Si le agregas una columna 'id_usuario_entrevistador' a esta tabla, la guardas aquí:
             // id_usuario: idUsuarioApp, 
             fecha_respuesta: new Date()

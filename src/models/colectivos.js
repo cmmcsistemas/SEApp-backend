@@ -28,7 +28,7 @@ const Colectivo = sequelize.define('Colectivo', {
   },
   telefono: {
     type: DataTypes.INTEGER, // O DataTypes.STRING si los números pueden tener formatos variados (ej. "+57 3xx xxxxxxx")
-    allowNull: false // Puede ser nulo o false según tus requisitos
+    allowNull: true // Puede ser nulo o false según tus requisitos
   },
   created_at: {
     type: DataTypes.DATE,

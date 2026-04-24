@@ -7,6 +7,7 @@ import Participante from "../models/participantes.js";
 import DatoRespuesta from "../models/datosRespuesta.js";
 import bcrypt from "bcryptjs";
 import { createToken } from "../services/jwt.js";
+import { Op } from "sequelize";
 import RespuestasFormulario from "../models/respuestasFormulario.js";
 
 

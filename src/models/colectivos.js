@@ -4,7 +4,7 @@ import paginate from 'sequelize-paginate';
 
 
 const Colectivo = sequelize.define('Colectivo', {
-  id_colectivos: {
+  id_colectivo: {
     type: DataTypes.INTEGER,
     primaryKey: true,
     autoIncrement: true, // Asumiendo que id_participante es autoincremental

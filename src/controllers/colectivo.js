@@ -151,8 +151,8 @@ export const basicRegisterColectivo = async (req, res) => {
   
           return res.status(201).json({
               status: "success",
-              message: "Participante y respuestas de Kobo registrados con éxito",
-              participante: participante,
+              message: "Colectivo y respuestas de Kobo registrados con éxito",
+              colectivo: colectivoRecord,
               formulario: cabeceraForm
           });
   

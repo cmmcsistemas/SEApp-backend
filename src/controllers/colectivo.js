@@ -92,12 +92,13 @@ export const basicRegisterColectivo = async (req, res) => {
       const payload = req.body; 
   
       const nombre_colectivo = payload['group_nb18u42/Nombre_del_colectivo']; // o payload['group_xxx/Nombres']
-      const nit = payload['group_nb18u42/NIT_del_colectivo'] || null;
+      const nitKobo = payload['group_nb18u42/NIT_del_colectivo'] || null;
       const email = payload['group_nb18u42/group_cf2vy19/Correo_electr_nico'] || null; 
       const telefono = payload['group_nb18u42/group_cf2vy19/N_mero_de_tel_fono'] || null;
   
       const idUsuarioApp = payload['Id_usuario'];
   
+      const nit = nitKobo ? nitKobo.toString().split('-')[0].trim() : null;
       // Validación básica de presencia
       if (!nombre_colectivo ) {
           return res.status(400).json({ status: "error", message: "Faltan datos clave del participante desde Kobo" });

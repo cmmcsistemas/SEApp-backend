@@ -5,6 +5,7 @@ import Participante from "../models/participantes.js";
 //import Follow from "../models/follows.js";
 //import Publication from "../models/publications.js";
 import DatoRespuesta from "../models/datosRespuesta.js";
+import sequelize from '../database/database.js';
 import bcrypt from "bcryptjs";
 import { createToken } from "../services/jwt.js";
 import { Op } from "sequelize";
@@ -90,42 +91,40 @@ export const basicRegisterColectivo = async (req, res) => {
   // 1. Kobo envía todo en el body. ¡Ojo con las mayúsculas!
       const payload = req.body; 
   
-      const colectivo = payload['group_nb18u42/Nombre_del_colectivo']; // o payload['group_xxx/Nombres']
-      const nit = payload['group_nb18u42/NIT_del_colectivo'];
+      const nombre_colectivo = payload['group_nb18u42/Nombre_del_colectivo']; // o payload['group_xxx/Nombres']
+      const nit = payload['group_nb18u42/NIT_del_colectivo'] || null;
       const email = payload['group_nb18u42/group_cf2vy19/Correo_electr_nico'] || null; 
       const telefono = payload['group_nb18u42/group_cf2vy19/N_mero_de_tel_fono'] || null;
   
       const idUsuarioApp = payload['Id_usuario'];
   
       // Validación básica de presencia
-      if (!colectivo ) {
+      if (!nombre_colectivo ) {
           return res.status(400).json({ status: "error", message: "Faltan datos clave del participante desde Kobo" });
       }
   
       // Iniciamos la transacción para afectar las 2 tablas de forma segura
       const t = await sequelize.transaction();
   
+
       try {
         // 2. Control de duplicados o Búsqueda del Participante
-          let colectivo = await Colectivo.findOne({
-              where: { nit: nit },
+          let colectivoRecord = await Colectivo.findOne({
+              where: { colectivo: nombre_colectivo },
               transaction: t
           });
   
           // Si NO existe, lo creamos (Como en tu basicRegister)
-          if (!colectivo) {
-              colectivo = await Colectivo.create({
-                  colectivo,
+          if (!colectivoRecord) {
+              colectivoRecord = await Colectivo.create({
+                  colectivo: nombre_colectivo,
                   nit,
                   email,
                   telefono
               }, { transaction: t });
-          } else {
-              // Opcional: Si ya existe, puedes decidir actualizar sus datos aquí
-              // await participante.update({ nombre, apellido... }, { transaction: t });
-          }
+          } 
   
-          const pId = colectivo.id_colectivo;
+          const pId = colectivoRecord.id_colectivo;
   
           // 3. Crear la Cabecera del Formulario (respuestas_formulario)
           const cabeceraForm = await RespuestasFormulario.create({

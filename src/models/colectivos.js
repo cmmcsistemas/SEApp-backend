@@ -12,12 +12,12 @@ const Colectivo = sequelize.define('Colectivo', {
   },
   colectivo: {
     type: DataTypes.STRING,
-    allowNull: false
+    allowNull: false,
+    unique: true 
   },
   nit: {
     type: DataTypes.BIGINT,
-    allowNull: false,
-    unique: true // Asumiendo que el documento debe ser único
+    allowNull: true
   },
   email: {
     type: DataTypes.STRING,

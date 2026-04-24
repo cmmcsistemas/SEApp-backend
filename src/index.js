@@ -11,6 +11,7 @@ import planesFormacion from "./routes/planesFormacion.js";
 import RespuestasFormulario from "./models/respuestasFormulario.js";
 import DatoRespuesta from "./models/datosRespuesta.js";
 import FollowRoutes from "./routes/login.js";
+import Colectivo from "./models/colectivos.js";
 
 dotenv.config();
 console.log("API node en ejecucion");
@@ -40,6 +41,7 @@ app.use('/api/participantes', ParticipanteRoutes);
 app.use('/api/formularios', formulariosRoutes);
 app.use('/api/basica', basicaRoutes);
 app.use('/api/planes-de-formacion', planesFormacion);
+app.use('/api/colectivo', Colectivo);
 //app.use('/api/follow', FollowRoutes);
 
 app.listen(puerto, () => {

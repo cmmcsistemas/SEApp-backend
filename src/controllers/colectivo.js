@@ -229,3 +229,60 @@ export const getColectivosXML = async (req, res) => {
         return res.status(500).send('<root><item><name>error</name><label>Error al cargar listado</label></item></root>');
     }
 };
+
+export const getKoboDataByColectivo = async (req, res) => {
+    try {
+        const { id_colectivo } = req.params;
+
+        // 1. Buscamos la cabecera del formulario y su detalle asociado
+        const formulario = await RespuestasFormulario.findOne({
+            where: { 
+                id_colectivo: id_colectivo, 
+                id_formulario: 3 // Tu ID para Caracterización Básica
+            },
+            include: [{
+                model: DatoRespuesta,
+                as: 'detalles',
+                // Filtramos específicamente por el campo donde guardaste el JSON
+                where: { id_campo: 1244 } 
+            }]
+        });
+
+        if (!formulario || !formulario.detalles || formulario.detalles.length === 0) {
+            return res.status(404).json({
+                status: "error",
+                message: "No se encontraron datos de Kobo para este colectivo"
+            });
+        }
+
+        // 2. Extraemos el string y lo convertimos a objeto JavaScript
+        const stringData = formulario.detalles[0].valor;
+        const rawKoboData = JSON.parse(stringData);
+
+        // 3. Limpiamos las llaves horribles de Kobo
+        const cleanData = {};
+        for (const [key, value] of Object.entries(rawKoboData)) {
+            // Si la llave tiene un '/', la cortamos y nos quedamos solo con la parte final
+            // Ejemplo: "group_nb18u42/Nombre_del_colectivo" -> "Nombre_del_colectivo"
+            const cleanKey = key.includes('/') ? key.split('/').pop() : key;
+            
+            // Asignamos el valor a la llave limpia
+            cleanData[cleanKey] = value;
+        }
+
+        // 4. Enviamos la respuesta estructurada
+        return res.status(200).json({
+            status: "success",
+            message: "Datos de Kobo recuperados correctamente",
+            data: cleanData
+        });
+
+    } catch (error) {
+        console.error("Error al obtener datos de Kobo:", error);
+        return res.status(500).json({
+            status: "error",
+            message: "Error interno al procesar los datos de caracterización",
+            error: error.message
+        });
+    }
+};

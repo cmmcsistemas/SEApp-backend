@@ -213,8 +213,11 @@ export const getColectivosXML = async (req, res) => {
 
         // Cambiamos el Content-Type para que la respuesta sea un archivo XML real, no JSON
         res.setHeader('Access-Control-Allow-Origin', '*');
-        res.setHeader('Access-Control-Allow-Methods', 'GET');
-        res.setHeader('Content-Type', 'application/xml');
+        res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS'); // Agrega OPTIONS por si acaso
+        res.setHeader('Content-Type', 'application/xml; charset=utf-8'); // Especifica el charset
+
+        // Este encabezado le dice a Kobo que esto es un archivo real llamado colectivos.xml
+        res.setHeader('Content-Disposition', 'attachment; filename="colectivos.xml"');
         return res.send(xml);
 
     } catch (error) {

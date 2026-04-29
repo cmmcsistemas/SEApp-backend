@@ -175,7 +175,7 @@ export const getColectivosXML = async (req, res) => {
     try {
         // Traemos todos los colectivos ordenados alfabéticamente
         const colectivos = await Colectivo.findAll({
-            attributes: ['id_colectivos', 'colectivo'], // Traemos solo lo necesario
+            attributes: ['id_colectivo', 'colectivo'], // Traemos solo lo necesario
             order: [['colectivo', 'ASC']]
         });
 
@@ -199,8 +199,8 @@ export const getColectivosXML = async (req, res) => {
         xml += '<root>\n';
 
         colectivos.forEach(c => {
-            // Aseguramos capturar el ID correctamente (por el tema del plural)
-            const id = c.id_colectivos || c.id_colectivo;
+            
+            const id = c.id_colectivo;
             const nombre = escapeXml(c.colectivo);
 
             xml += '  <item>\n';

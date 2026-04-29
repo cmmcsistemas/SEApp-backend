@@ -212,7 +212,9 @@ export const getColectivosXML = async (req, res) => {
         xml += '</root>';
 
         // Cambiamos el Content-Type para que la respuesta sea un archivo XML real, no JSON
-        res.set('Content-Type', 'application/xml');
+        res.setHeader('Access-Control-Allow-Origin', '*');
+        res.setHeader('Access-Control-Allow-Methods', 'GET');
+        res.setHeader('Content-Type', 'application/xml');
         return res.send(xml);
 
     } catch (error) {
@@ -220,7 +222,7 @@ export const getColectivosXML = async (req, res) => {
         
         // En caso de error, es buena práctica devolver un XML válido con un mensaje de error
         // para que Kobo no reciba un HTML o JSON que haga colapsar su sistema de listas.
-        res.set('Content-Type', 'application/xml');
+        res.setHeader('Content-Type', 'application/xml');
         return res.status(500).send('<root><item><name>error</name><label>Error al cargar listado</label></item></root>');
     }
 };

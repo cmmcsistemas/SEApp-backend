@@ -7,7 +7,7 @@ const router = express.Router();
 // Ruta para crear un nuevo subproyecto
 router.get('/searchColectivo', searchColectivo);
 router.post('/addColectivo', basicRegisterColectivo);
-router.get('/export/xml', getColectivosXML)
+router.get('/application/xml', getColectivosXML)
 
 
 

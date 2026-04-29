@@ -91,13 +91,14 @@ export const basicRegisterColectivo = async (req, res) => {
   // 1. Kobo envía todo en el body. ¡Ojo con las mayúsculas!
       const payload = req.body; 
   
-      const nombre_colectivo = payload['group_nb18u42/Nombre_del_colectivo']; // o payload['group_xxx/Nombres']
+      const nombreKobo = payload['group_nb18u42/Nombre_del_colectivo']; // o payload['group_xxx/Nombres']
       const nitKobo = payload['group_nb18u42/NIT_del_colectivo'] || null;
       const email = payload['group_nb18u42/group_cf2vy19/Correo_electr_nico'] || null; 
       const telefono = payload['group_nb18u42/group_cf2vy19/N_mero_de_tel_fono'] || null;
   
       const idUsuarioApp = payload['Id_usuario'];
   
+      const nombre_colectivo = nombreKobo ? nombreKobo.toUpperCase().trim() : null;
       const nit = nitKobo ? nitKobo.toString().split('-')[0].trim() : null;
       // Validación básica de presencia
       if (!nombre_colectivo ) {
@@ -168,4 +169,58 @@ export const basicRegisterColectivo = async (req, res) => {
               error: error.message
           });
       }
+};
+
+export const getColectivosXML = async (req, res) => {
+    try {
+        // Traemos todos los colectivos ordenados alfabéticamente
+        const colectivos = await Colectivo.findAll({
+            attributes: ['id_colectivos', 'colectivo'], // Traemos solo lo necesario
+            order: [['colectivo', 'ASC']]
+        });
+
+        // Función auxiliar para escapar caracteres prohibidos en XML
+        const escapeXml = (unsafe) => {
+            if (!unsafe) return '';
+            return unsafe.toString().replace(/[<>&'"]/g, (c) => {
+                switch (c) {
+                    case '<': return '&lt;';
+                    case '>': return '&gt;';
+                    case '&': return '&amp;';
+                    case '\'': return '&apos;';
+                    case '"': return '&quot;';
+                    default: return c;
+                }
+            });
+        };
+
+        // Construcción del XML en formato String
+        let xml = '<?xml version="1.0" encoding="UTF-8"?>\n';
+        xml += '<root>\n';
+
+        colectivos.forEach(c => {
+            // Aseguramos capturar el ID correctamente (por el tema del plural)
+            const id = c.id_colectivos || c.id_colectivo;
+            const nombre = escapeXml(c.colectivo);
+
+            xml += '  <item>\n';
+            xml += `    <name>colectivo_${id}</name>\n`;
+            xml += `    <label>${nombre}</label>\n`;
+            xml += '  </item>\n';
+        });
+
+        xml += '</root>';
+
+        // Cambiamos el Content-Type para que la respuesta sea un archivo XML real, no JSON
+        res.set('Content-Type', 'application/xml');
+        return res.send(xml);
+
+    } catch (error) {
+        console.error("Error al generar XML de colectivos:", error);
+        
+        // En caso de error, es buena práctica devolver un XML válido con un mensaje de error
+        // para que Kobo no reciba un HTML o JSON que haga colapsar su sistema de listas.
+        res.set('Content-Type', 'application/xml');
+        return res.status(500).send('<root><item><name>error</name><label>Error al cargar listado</label></item></root>');
+    }
 };

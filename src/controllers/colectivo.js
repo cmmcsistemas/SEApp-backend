@@ -237,7 +237,7 @@ export const getKoboDataByColectivo = async (req, res) => {
         // 1. Buscamos la cabecera del formulario y su detalle asociado
         const formulario = await RespuestasFormulario.findOne({
             where: { 
-                id_colectivo: id_colectivo, 
+                id_respuesta: id_colectivo, 
                 id_formulario: 3 // Tu ID para Caracterización Básica
             },
             include: [{

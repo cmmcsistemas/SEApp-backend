@@ -51,12 +51,12 @@ export const recibirDatosKobo = async (req, res) => {
     // 1. Kobo envía todo en el body. ¡Ojo con las mayúsculas!
     const payload = req.body; 
 
-    const nombre = payload['group_ml81f78/Nombres']; // o payload['group_xxx/Nombres']
-    const apellido = payload['group_ml81f78/Apellidos'];
-    const documento = payload['group_ml81f78/N_mero_de_identificaci_n'];
-    const email = payload['group_cf8ua85/Correo_electr_nico'] || null; 
-    const telefono = payload['group_cf8ua85/Celular'] || null;
-    const fecha_nacimiento = payload['group_ml81f78/Fecha_de_nacimiento'] || null;
+    const nombre = payload['group_ml81f78/group_ww5li62/Nombres']; // o payload['group_xxx/Nombres']
+    const apellido = payload['group_ml81f78/group_ww5li62/Apellidos'];
+    const documento = payload['group_ml81f78/group_ww5li62/N_mero_de_identificaci_n'];
+    const email = payload['group_ml81f78/group_nk7cl41/Correo_electr_nico'] || null; 
+    const telefono = payload['group_ml81f78/group_nk7cl41/Celular'] || null;
+    const fecha_nacimiento = payload['group_ml81f78/group_ww5li62/Fecha_de_nacimiento'] || null;
 
     const idUsuarioApp = payload['Id_usuario'];
 

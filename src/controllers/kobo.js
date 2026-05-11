@@ -238,7 +238,7 @@ try {
         });
 
         // 3. Validamos si encontró algo
-        if (!participanteData) {
+        if (!participanteData || participanteData.length === 0) {
             return res.status(404).json({
                 status: "error",
                 message: `No se encontraron datos en Kobo para el documento: ${documento}`

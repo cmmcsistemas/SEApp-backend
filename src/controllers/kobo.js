@@ -3,7 +3,7 @@ import sequelize from '../database/database.js';
 import Participante from '../models/participantes.js';
 import DatoRespuesta from '../models/datosRespuesta.js';
 import RespuestasFormulario from '../models/respuestasFormulario.js';
-
+import VistaDatosParticipantesCompleta from '../models/vistaDatosParticipantesCompleta.js';
 
 export const getEnketoPreview = async (req, res) => {
     try {
@@ -212,5 +212,26 @@ export const recibirDatosKoboAmpliada = async (req, res) => {
             message: "Error interno del servidor al procesar Kobo",
             error: error.message
         });
+    }
+};
+
+export const recibirDatosParticipantesKobo = async (req, res) =>{
+    const koboData = req.body;
+
+    const { nombre_participante, apellido_participante, documento, email, id_respuesta, nombre_campo, valor } = koboData;
+
+    try {
+        await Seguimiento.create({
+            nombre: nombre_participante,
+            apellido: apellido_participante,
+            documento: documento,
+            email: email,
+            respuesta: id_respuesta,
+            nombre_campo: nombre_campo,
+            valor: valor
+        });
+        res.status(200).send("Datos procesados");
+    } catch (error) {
+        res.status(500).send("Error al guardar");
     }
 };

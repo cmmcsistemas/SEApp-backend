@@ -162,7 +162,6 @@ export const recibirDatosKoboAmpliada = async (req, res) => {
             transaction: t
         });
 
-        // Si NO existe, lo creamos (Como en tu basicRegister)
         if (!participante) {
             participante = await Participante.create({
                 nombre,
@@ -172,7 +171,7 @@ export const recibirDatosKoboAmpliada = async (req, res) => {
                 telefono,
                 fecha_nacimiento
             }, { transaction: t });
-        } else {
+        } 
 
         const pId = participante.id_participante;
             // await participante.update({ nombre, apellido... }, { transaction: t });
@@ -193,13 +192,10 @@ export const recibirDatosKoboAmpliada = async (req, res) => {
             valor: JSON.stringify(payload), // Recuerda tener esta columna como TEXT o JSON en BD
             created_at: new Date()
         }, { transaction: t });
-            
-        }
+         await t.commit();
 
-        // 5. Commit final
-        await t.commit();
 
-        return res.status(201).json({
+    return res.status(201).json({
             status: "success",
             message: "Participante y respuestas de Kobo registrados con éxito",
             participante: participante,

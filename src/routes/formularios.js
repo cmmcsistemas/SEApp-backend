@@ -16,6 +16,6 @@ router.get('/kobo-preview/:asset_uid', getEnketoPreview);
 router.get('/kobo', ensureAuth, getFormKobo);
 router.post('/register-from-kobo/', recibirDatosKobo);
 router.post('/register-from-kobo-amplida/', recibirDatosKoboAmpliada);
-router.get('/obtener-participantes', recibirDatosParticipantesKobo)
+router.get('/obtener-participantes', recibirDatosParticipantesKobo);
 
 export default router;

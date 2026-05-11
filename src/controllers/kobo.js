@@ -216,22 +216,48 @@ export const recibirDatosKoboAmpliada = async (req, res) => {
 };
 
 export const recibirDatosParticipantesKobo = async (req, res) =>{
-    const koboData = req.body;
+try {
+        // 1. Extraemos el documento de los query params de la URL
+        // Ejemplo de URL: /api/kobo/buscar-participante?documento=10203040
+        const { documento } = req.query;
 
-    const { nombre_participante, apellido_participante, documento, email, id_respuesta, nombre_campo, valor } = koboData;
+        if (!documento) {
+            return res.status(400).json({
+                status: "error",
+                message: "Debe proporcionar un número de documento para buscar."
+            });
+        }
 
-    try {
-        await Seguimiento.create({
-            nombre: nombre_participante,
-            apellido: apellido_participante,
-            documento: documento,
-            email: email,
-            respuesta: id_respuesta,
-            nombre_campo: nombre_campo,
-            valor: valor
+        // 2. Realizamos la consulta a la Vista en la base de datos
+        // Usamos findOne asumiendo que el documento trae un solo registro consolidado.
+        // Si la vista trae varios registros por documento (ej. varias respuestas), usa findAll()
+        const participanteData = await VistaDatosParticipantesCompleta.findAll({
+            where: {
+                documento: documento
+            }
         });
-        res.status(200).send("Datos procesados");
+
+        // 3. Validamos si encontró algo
+        if (!participanteData) {
+            return res.status(404).json({
+                status: "error",
+                message: `No se encontraron datos en Kobo para el documento: ${documento}`
+            });
+        }
+
+        // 4. Retornamos la información estructurada para el frontend
+        return res.status(200).json({
+            status: "success",
+            message: "Datos del participante encontrados con éxito",
+            data: participanteData
+        });
+
     } catch (error) {
-        res.status(500).send("Error al guardar");
+        console.error("Error al consultar la vista de participantes Kobo:", error);
+        return res.status(500).json({
+            status: "error",
+            message: "Error interno del servidor al buscar participante",
+            error: error.message
+        });
     }
 };

@@ -234,7 +234,6 @@ export const register = async (req, res) => {
     }
 };
 
-
 export const saveAdditionalData = async (req, res) => {
     const { id_respuesta, formulario_data } = req.body;
 

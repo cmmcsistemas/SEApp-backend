@@ -14,6 +14,7 @@ const VistaDatosParticipantesCompleta = sequelize.define('VistaDatosParticipante
   },
   documento: {
     type: DataTypes.INTEGER,
+    
     allowNull: false
   },
   email: {
@@ -48,6 +49,6 @@ const VistaDatosParticipantesCompleta = sequelize.define('VistaDatosParticipante
   timestamps: false // Deshabilita los timestamps automáticos de Sequelize (createdAt y updatedAt), ya que tienes created_at manual
 });
 
-
+VistaDatosParticipantesCompleta.removeAttribute('id');
 
 export default VistaDatosParticipantesCompleta;

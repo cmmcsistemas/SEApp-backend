@@ -48,6 +48,6 @@ const VistaDatosColectivosCompleta = sequelize.define('VistaDatosColectivosCompl
   timestamps: false // Deshabilita los timestamps automáticos de Sequelize (createdAt y updatedAt), ya que tienes created_at manual
 });
 
-
+VistaDatosColectivosCompleta.removeAttribute('id');
 
 export default VistaDatosColectivosCompleta;

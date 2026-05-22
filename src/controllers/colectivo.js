@@ -91,6 +91,91 @@ export const basicRegisterColectivo = async (req, res) => {
   // 1. Kobo envía todo en el body. ¡Ojo con las mayúsculas!
       const payload = req.body; 
   
+      const nombre_colectivo = payload['group_nb18u42/Nombre_del_colectivo']; // o payload['group_xxx/Nombres']
+      const nitKobo = payload['group_nb18u42/NIT_del_colectivo'] || null;
+      const email = payload['group_nb18u42/group_cf2vy19/Correo_electr_nico'] || null; 
+      const telefono = payload['group_nb18u42/group_cf2vy19/N_mero_de_tel_fono'] || null;
+  
+      const idUsuarioApp = payload['Id_usuario'];
+  
+      // const nombre_colectivo = nombreKobo ? nombreKobo.toUpperCase().trim() : null;
+      const nit = nitKobo ? nitKobo.toString().split('-')[0].trim() : null;
+      // Validación básica de presencia
+      if (!nombre_colectivo ) {
+          return res.status(400).json({ status: "error", message: "Faltan datos clave del participante desde Kobo" });
+      }
+  
+      // Iniciamos la transacción para afectar las 2 tablas de forma segura
+      const t = await sequelize.transaction();
+  
+
+      try {
+        // 2. Control de duplicados o Búsqueda del Participante
+          let colectivoRecord = await Colectivo.findOne({
+              where: { colectivo: nombre_colectivo },
+              transaction: t
+          });
+  
+          // Si NO existe, lo creamos (Como en tu basicRegister)
+          if (!colectivoRecord) {
+              colectivoRecord = await Colectivo.create({
+                  colectivo: nombre_colectivo,
+                  nit,
+                  email,
+                  telefono
+              }, { transaction: t });
+          } 
+  
+          const pId = colectivoRecord.id_colectivo;
+  
+          // 3. Crear la Cabecera del Formulario (respuestas_formulario)
+          const cabeceraForm = await RespuestasFormulario.create({
+              id_participante: pId,
+              id_formulario: 3, // ID para Caracterización Básica
+              // Si le agregas una columna 'id_usuario_entrevistador' a esta tabla, la guardas aquí:
+              // id_usuario: idUsuarioApp, 
+              fecha_respuesta: new Date()
+          }, { transaction: t });
+  
+          const rId = cabeceraForm.id_respuesta;
+  
+          // 4. Guardar TODO el JSON de Kobo en datos_respuesta
+          // Usamos el id_campo 1241 como definimos antes
+          await DatoRespuesta.create({
+              id_respuesta: rId,
+              id_campo: 1244, 
+              valor: JSON.stringify(payload), // Recuerda tener esta columna como TEXT o JSON en BD
+              created_at: new Date()
+          }, { transaction: t });
+  
+          // 5. Commit final
+          await t.commit();
+  
+          return res.status(201).json({
+              status: "success",
+              message: "Colectivo y respuestas de Kobo registrados con éxito",
+              colectivo: colectivoRecord,
+              formulario: cabeceraForm
+          });
+  
+      } catch (error) {
+          if (t && !t.finished) {
+              await t.rollback();
+          }
+          console.error("Error procesando Webhook de Kobo:", error);
+          return res.status(500).json({
+              status: "error",
+              message: "Error interno del servidor al procesar Kobo",
+              error: error.message
+          });
+      }
+};
+
+export const basicRegisterColectivo = async (req, res) => {
+
+  // 1. Kobo envía todo en el body. ¡Ojo con las mayúsculas!
+      const payload = req.body; 
+  
       const nombreKobo = payload['group_nb18u42/Nombre_del_colectivo']; // o payload['group_xxx/Nombres']
       const nitKobo = payload['group_nb18u42/NIT_del_colectivo'] || null;
       const email = payload['group_nb18u42/group_cf2vy19/Correo_electr_nico'] || null; 

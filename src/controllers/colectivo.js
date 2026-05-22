@@ -171,7 +171,7 @@ export const basicRegisterColectivo = async (req, res) => {
       }
 };
 
-export const basicRegisterColectivo = async (req, res) => {
+export const extendRegisterColectivo = async (req, res) => {
 
   // 1. Kobo envía todo en el body. ¡Ojo con las mayúsculas!
       const payload = req.body; 

@@ -203,7 +203,7 @@ export const extendRegisterColectivo = async (req, res) => {
         });
 
         if (!colectivoRecord) {
-            colectivo = await Colectivo.create({
+            colectivoRecord = await Colectivo.create({
                 colectivo,
                 nit,
                 email,
@@ -235,8 +235,8 @@ export const extendRegisterColectivo = async (req, res) => {
 
     return res.status(201).json({
             status: "success",
-            message: "Colectivo y respuestas de Kobo registrados con éxito",
-            colectivoRecord: colectivo,
+            message: "Colectivo y respuestas de Kobo registrados con éSxito",
+            colectivoRecord: colectivoRecord,
             formulario: cabeceraForm
         });
 

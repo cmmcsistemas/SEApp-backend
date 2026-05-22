@@ -186,7 +186,6 @@ export const extendRegisterColectivo = async (req, res) => {
       //const nombre_colectivo = nombreKobo ? nombreKobo.toUpperCase().trim() : null;
       const nit = nitKobo ? nitKobo.toString().split('-')[0].trim() : null;
          // 1. Kobo envía todo en el body. ¡Ojo con las mayúsculas!
-    const payload = req.body; 
 
     // Validación básica de información
     if (!nombre_colectivo) {

@@ -143,7 +143,7 @@ export const basicRegisterColectivo = async (req, res) => {
           // Usamos el id_campo 1241 como definimos antes
           await DatoRespuesta.create({
               id_respuesta: rId,
-              id_campo: 1244, 
+              id_campo: 1243, 
               valor: JSON.stringify(payload), // Recuerda tener esta columna como TEXT o JSON en BD
               created_at: new Date()
           }, { transaction: t });

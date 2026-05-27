@@ -9,7 +9,7 @@ router.get('/searchColectivo', searchColectivo);
 router.post('/addColectivo', basicRegisterColectivo);
 router.get('/application/xml', getColectivosXML);
 router.get('/kobo-data/:id_colectivo', getKoboDataByColectivo);
-router.get('/addExtendColectivo', extendRegisterColectivo);
+router.post('/addExtendColectivo', extendRegisterColectivo);
 
 
 

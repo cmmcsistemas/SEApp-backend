@@ -10,6 +10,7 @@ import bcrypt from "bcryptjs";
 import { createToken } from "../services/jwt.js";
 import { Op } from "sequelize";
 import RespuestasFormulario from "../models/respuestasFormulario.js";
+import VistaDatosColectivosCompleta from "../models/vistaDatosColectivosCompleta.js";
 
 
 
@@ -39,7 +40,7 @@ import RespuestasFormulario from "../models/respuestasFormulario.js";
                 },
                 // Búsqueda por nombre (coincidencia parcial)
                 {
-                    colectivo: {
+                    nombre_colectivo: {
                         [Op.like]: `%${searchQuery}%`
                     }
                 },
@@ -52,27 +53,52 @@ import RespuestasFormulario from "../models/respuestasFormulario.js";
         };
         
         // 3. Ejecutar la consulta
-        const colectivos = await Colectivo.findAll({
+        const registrosVista = await VistaDatosColectivosCompleta.findAll({
             where: searchCondition,
-            attributes: ['id_colectivo', 'colectivo',  'nit', 'email', 'telefono']
+            attributes: ['id_colectivo', 'nombre_colectivo', 'nit', 'email', 'nombre_modulo']
             // Puedes añadir 'order' si necesitas ordenar los resultados
             // order: [['nombre', 'ASC']]
         });
 
         // 4. Verificar resultados
-        if (!colectivos || colectivos.length === 0) {
+        if (!registrosVista || registrosVista.length === 0) {
             return res.status(404).send({
                 status: "error",
                 message: `No se encontraron colectivos para el término: "${searchQuery}"`
             });
         }
 
-        // 5. Devolver la respuesta
+        const colectivosAgrupados = {};
+
+        registrosVista.forEach(row => {
+        const id = row.id_colectivo;
+            if (!colectivosAgrupados[id]) {
+                colectivosAgrupados[id] = {
+                    id_colectivo: id,
+                    nombre_colectivo: row.nombre_colectivo,
+                    nit: row.nit,
+                    email: row.email,
+                    modulos: new Set() // Usamos Set para que no se repitan los nombres de los módulos
+                };
+            }
+            
+            // Si la fila tiene un nombre de módulo, lo añadimos al Set
+            if (row.nombre_modulo) {
+                colectivosAgrupados[id].modulos.add(row.nombre_modulo);
+            }
+        });
+            // Convertimos el objeto agrupador en un arreglo limpio para el JSON final
+        const resultadoFinal = Object.values(colectivosAgrupados).map(colectivo => ({
+            ...colectivo,
+            modulos: Array.from(colectivo.modulos) // Convertimos el Set de vuelta a un Array normal
+        }));
+
+        // 6. Devolver la respuesta
         return res.status(200).json({
             status: "success",
             message: "Colectivos encontrados",
-            total: colectivos.length,
-            colectivos: colectivos
+            total: resultadoFinal.length,
+            colectivos: resultadoFinal
         });
 
     } catch (error) {

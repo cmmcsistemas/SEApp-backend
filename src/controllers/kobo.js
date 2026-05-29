@@ -215,6 +215,82 @@ export const recibirDatosKoboAmpliada = async (req, res) => {
     }
 };
 
+export const recibirDatosKoboDiagnostico = async (req, res) => {
+    // 1. Kobo envía todo en el body. ¡Ojo con las mayúsculas!
+    const payload = req.body; 
+
+    const documento = payload['N_mero_de_identificaci_n'];
+
+    const idUsuarioApp = payload['Id_usuario'];
+
+    // Validación básica de presencia
+    if ( !documento) {
+        return res.status(400).json({ status: "error", message: "Faltan datos clave del participante desde Kobo" });
+    }
+
+    // Iniciamos la transacción para afectar las 2 tablas de forma segura
+    const t = await sequelize.transaction();
+
+    try {
+      // 2. Control de duplicados o Búsqueda del Participante
+        let participante = await Participante.findOne({
+            where: { documento: documento },
+            transaction: t
+        });
+
+        if (!participante) {
+            participante = await Participante.create({
+                nombre,
+                apellido,
+                documento,
+                email,
+                telefono,
+                fecha_nacimiento
+            }, { transaction: t });
+        } 
+
+        const pId = participante.id_participante;
+            // await participante.update({ nombre, apellido... }, { transaction: t });
+
+        const cabeceraForm = await RespuestasFormulario.create({
+            id_participante: pId,
+            id_formulario: 3, // ID para Caracterización Básica
+            // Si le agregas una columna 'id_usuario_entrevistador' a esta tabla, la guardas aquí:
+            // id_usuario: idUsuarioApp, 
+            fecha_respuesta: new Date()
+        }, { transaction: t });
+
+        const rId = cabeceraForm.id_respuesta;
+
+        await DatoRespuesta.create({
+            id_respuesta: rId,
+            id_campo: 1245, 
+            valor: JSON.stringify(payload), // Recuerda tener esta columna como TEXT o JSON en BD
+            created_at: new Date()
+        }, { transaction: t });
+         await t.commit();
+
+
+    return res.status(201).json({
+            status: "success",
+            message: "Participante y respuestas de Kobo registrados con éxito",
+            participante: participante,
+            formulario: cabeceraForm
+        });
+
+    } catch (error) {
+        if (t && !t.finished) {
+            await t.rollback();
+        }
+        console.error("Error procesando Webhook de Kobo:", error);
+        return res.status(500).json({
+            status: "error",
+            message: "Error interno del servidor al procesar Kobo",
+            error: error.message
+        });
+    }
+};
+
 export const recibirDatosParticipantesKobo = async (req, res) =>{
 try {
         // 1. Extraemos el documento de los query params de la URL

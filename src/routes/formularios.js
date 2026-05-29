@@ -1,6 +1,6 @@
 import express from 'express';
 import { getCamposFormulario, getCamposM1SiNo, getCamposPorTipo, getCamposM1Diagnostico } from '../controllers/formularios.js';
-import { getEnketoPreview, getFormKobo, recibirDatosKobo,recibirDatosKoboAmpliada, recibirDatosParticipantesKobo, recibirDatosKoboDiagnostico } from '../controllers/kobo.js';
+import { getEnketoPreview, getFormKobo, recibirDatosKobo,recibirDatosKoboAmpliada, recibirDatosParticipantesKobo, recibirDatosKoboDiagnostico, exportarParticipantesExcel } from '../controllers/kobo.js';
 import { ensureAuth } from "../middleware/auth.js";
 
 const router = express.Router();
@@ -18,5 +18,6 @@ router.post('/register-from-kobo/', recibirDatosKobo);
 router.post('/register-from-kobo-amplida/', recibirDatosKoboAmpliada);
 router.get('/obtener-participantes', recibirDatosParticipantesKobo);
 router.post('/register-from-kobo-diagnostico/', recibirDatosKoboDiagnostico);
+router.get('/informe-kobo-participantes/', exportarParticipantesExcel);
 
 export default router;

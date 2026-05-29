@@ -111,7 +111,6 @@ import VistaDatosColectivosCompleta from "../models/vistaDatosColectivosCompleta
     }
 };
 
-
 export const basicRegisterColectivo = async (req, res) => {
 
   // 1. Kobo envía todo en el body. ¡Ojo con las mayúsculas!

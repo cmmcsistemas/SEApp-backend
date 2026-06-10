@@ -393,3 +393,159 @@ export const getKoboDataByColectivo = async (req, res) => {
         });
     }
 };
+
+
+
+const CLAVES_EXCLUIDAS = new Set([
+  '_id', 'formhub/uuid', 'start', 'end', 'username', 'deviceid',
+  '__version__', 'meta/instanceID', '_xform_id_string', '_uuid',
+  'meta/rootUuid', '_attachments', '_status', '_geolocation',
+  '_tags', '_notes', '_validation_status', '_submitted_by',
+  // '_submission_time',  // <- descomenta si NO quieres la fecha de envío
+]);
+ 
+// ---------------------------------------------------------------------------
+// 2) Quita el prefijo de grupo aleatorio de Kobo.
+//    "group_nb18u42/group_ye37m21/Correo_electr_nico_principal"
+//      -> "Correo_electr_nico_principal"
+// ---------------------------------------------------------------------------
+function limpiarClave(clave) {
+  const partes = clave.split('/');
+  return partes[partes.length - 1];
+}
+ 
+// ---------------------------------------------------------------------------
+// 3) Parsea el contenido del campo "valor".
+//    Maneja el caso de que Sequelize ya lo devuelva como objeto.
+// ---------------------------------------------------------------------------
+function parsearValor(valor) {
+  if (valor == null) return null;
+  if (typeof valor === 'object') return valor;
+  try {
+    return JSON.parse(valor);
+  } catch (e) {
+    return null; // si algún registro viene mal formado, lo ignoramos
+  }
+}
+ 
+// ---------------------------------------------------------------------------
+// 4) Aplana el formulario: deja solo las preguntas reales con clave limpia.
+// ---------------------------------------------------------------------------
+function aplanarFormulario(json) {
+  const salida = {};
+  if (!json) return salida;
+ 
+  for (const [clave, valor] of Object.entries(json)) {
+    if (CLAVES_EXCLUIDAS.has(clave)) continue;
+    if (clave.startsWith('_') || clave.startsWith('meta/')) continue;
+ 
+    const claveLimpia = limpiarClave(clave);
+ 
+    if (Array.isArray(valor)) {
+      salida[claveLimpia] = valor.join(', ');
+    } else {
+      // Las preguntas de selección múltiple vienen como "2 3" o
+      // "mujeres j_venes". Si quieres separarlas por comas, descomenta:
+      // salida[claveLimpia] = String(valor).split(' ').join(', ');
+      salida[claveLimpia] = valor;
+    }
+  }
+  return salida;
+}
+ 
+// ---------------------------------------------------------------------------
+// 5) Controlador del endpoint
+// ---------------------------------------------------------------------------
+export const exportarParticipantesExcel = async (req, res) => {
+  try {
+    // raw: true -> objetos planos, más fáciles de procesar
+    const filas = await VistaDatosColectivosCompleta.findAll({ raw: true });
+ 
+    // Agrupamos por id_respuesta para quedarnos con un JSON por respuesta
+    const respuestasPorId = new Map();
+    for (const fila of filas) {
+      if (!respuestasPorId.has(fila.id_respuesta)) {
+        respuestasPorId.set(fila.id_respuesta, fila);
+      }
+    }
+ 
+    // Columnas fijas de la cabecera del colectivo
+    const camposBase = [
+      'id_respuesta', 'nit', 'nombre_colectivo',
+      'email', 'nombre_modulo',
+    ];
+ 
+    // Columnas dinámicas (preguntas del formulario), en orden de aparición
+    const columnasDinamicas = [];
+    const setColumnas = new Set();
+    const registros = [];
+ 
+    for (const fila of respuestasPorId.values()) {
+      const form = aplanarFormulario(parsearValor(fila.valor));
+ 
+      for (const clave of Object.keys(form)) {
+        if (!setColumnas.has(clave)) {
+          setColumnas.add(clave);
+          columnasDinamicas.push(clave);
+        }
+      }
+ 
+      registros.push({
+        id_respuesta: fila.id_respuesta,
+        nit: fila.nit,
+        nombre_colectivo: fila.nombre_colectivo,
+        email: fila.email,
+        nombre_modulo: fila.nombre_modulo,
+        ...form,
+      });
+    }
+ 
+    // ----- Construcción del Excel -----
+    const workbook = new ExcelJS.Workbook();
+    workbook.creator = 'Reporte Colectivo';
+    workbook.created = new Date();
+ 
+    const hoja = workbook.addWorksheet('Colectivos');
+ 
+    const columnas = [...camposBase, ...columnasDinamicas];
+    hoja.columns = columnas.map((c) => ({ header: c, key: c, width: 25 }));
+ 
+    // Estilo de la fila de encabezado
+    const filaEncabezado = hoja.getRow(1);
+    filaEncabezado.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+    filaEncabezado.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
+    filaEncabezado.fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: 'FF305496' },
+    };
+    filaEncabezado.height = 30;
+ 
+    // Agregar datos
+    for (const registro of registros) {
+      hoja.addRow(registro);
+    }
+ 
+    // Congelar la primera fila
+    hoja.views = [{ state: 'frozen', ySplit: 1 }];
+ 
+    // ----- Enviar como descarga -----
+    res.setHeader(
+      'Content-Type',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    );
+    res.setHeader(
+      'Content-Disposition',
+      'attachment; filename="reporte_colectivos.xlsx"'
+    );
+ 
+    await workbook.xlsx.write(res);
+    res.end();
+  } catch (error) {
+    console.error('Error al exportar a Excel:', error);
+    res.status(500).json({
+      mensaje: 'Error al generar el reporte',
+      error: error.message,
+    });
+  }
+};

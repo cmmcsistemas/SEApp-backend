@@ -1,6 +1,6 @@
 import express from 'express';
 import { ensureAuth } from "../middleware/auth.js";
-import { basicRegisterColectivo, getColectivosXML, searchColectivo, getKoboDataByColectivo, extendRegisterColectivo } from '../controllers/colectivo.js';
+import { basicRegisterColectivo, exportarColectivosExcel, getColectivosXML, searchColectivo, getKoboDataByColectivo, extendRegisterColectivo } from '../controllers/colectivo.js';
 
 
 const router = express.Router();
@@ -10,6 +10,7 @@ router.post('/addColectivo', basicRegisterColectivo);
 router.get('/application/xml', getColectivosXML);
 router.get('/kobo-data/:id_colectivo', getKoboDataByColectivo);
 router.post('/addExtendColectivo', extendRegisterColectivo);
+router.get('/informe-kobo-participantes/', exportarColectivosExcel);
 
 
 

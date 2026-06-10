@@ -456,7 +456,7 @@ function aplanarFormulario(json) {
 // ---------------------------------------------------------------------------
 // 5) Controlador del endpoint
 // ---------------------------------------------------------------------------
-export const exportarParticipantesExcel = async (req, res) => {
+export const exportarColectivosExcel = async (req, res) => {
   try {
     // raw: true -> objetos planos, más fáciles de procesar
     const filas = await VistaDatosColectivosCompleta.findAll({ raw: true });

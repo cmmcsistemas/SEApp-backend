@@ -1,4 +1,4 @@
-import axios from 'axios';
+//import axios from 'axios';
 import sequelize from '../database/database.js';
 import Participante from '../models/participantes.js';
 import DatoRespuesta from '../models/datosRespuesta.js';
@@ -410,7 +410,7 @@ function aplanarFormulario(json) {
 }
  
 async function cargarMapasDeEtiquetas() {
-  const filas = await EncabezadoCampo.findAll({ raw: true });
+  const filas = await EncabezadoDashboardKobo.findAll({ raw: true });
  
   const porModulo = new Map(); // `${nombre_modulo}||${name}` -> label
   const porName = new Map();   // name -> label (respaldo)

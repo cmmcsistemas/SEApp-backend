@@ -20,6 +20,6 @@ router.post('/register-from-kobo-amplida/', recibirDatosKoboAmpliada);
 router.get('/obtener-participantes', recibirDatosParticipantesKobo);
 router.post('/register-from-kobo-diagnostico/', recibirDatosKoboDiagnostico);
 router.get('/informe-kobo-participantes/', exportarParticipantesExcel);
-router.get*('/reportes/participantes', listadoParticipantes)
+router.get('/reportes/participantes', listadoParticipantes);
 
 export default router;

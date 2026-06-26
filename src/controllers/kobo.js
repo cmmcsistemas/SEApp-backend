@@ -6,6 +6,7 @@ import RespuestasFormulario from '../models/respuestasFormulario.js';
 import VistaDatosParticipantesCompleta from '../models/vistaDatosParticipantesCompleta.js';
 import ExcelJS from 'exceljs';
 import EncabezadoDashboardKobo from '../models/encabezadoDashboardKobo.js';
+import { obtenerDatosReporte } from '../helpers/participantesReporte.js';
 
 export const getEnketoPreview = async (req, res) => {
     try {
@@ -340,177 +341,45 @@ try {
     }
 };
 
-
-const CLAVES_EXCLUIDAS = new Set([
-  '_id', 'formhub/uuid', 'start', 'end', 'username', 'deviceid',
-  '__version__', 'meta/instanceID', '_xform_id_string', '_uuid',
-  'meta/rootUuid', '_attachments', '_status', '_geolocation',
-  '_tags', '_notes', '_validation_status', '_submitted_by',
-  // '_submission_time',  // <- descomenta si NO quieres la fecha de envío
-]);
- 
-
-// Etiquetas legibles para las columnas fijas del participante
-const ETIQUETAS_BASE = {
-  id_respuesta: 'ID Respuesta',
-  documento: 'Documento',
-  nombre_participante: 'Nombre',
-  apellido_participante: 'Apellido',
-  email: 'Correo electrónico',
-  nombre_modulo: 'Módulo',
+// GET /reportes/participantes/listado
+//   Filtros (query params, todos opcionales):
+//     participante  -> busca en nombre, apellido o documento
+//     nombres       -> LIKE sobre nombre_participante
+//     apellidos     -> LIKE sobre apellido_participante
+//     modulo        -> coincidencia exacta de nombre_modulo
+//     proyecto      -> coincidencia del campo "Proyecto" dentro del formulario
+ export const listadoParticipantes = async (req, res) => {
+  try {
+    const resultado = await obtenerDatosReporte(req.query);
+    res.json(resultado);
+  } catch (error) {
+    console.error('Error al obtener el listado de participantes:', error);
+    res.status(500).json({
+      mensaje: 'Error al obtener el listado',
+      error: error.message,
+    });
+  }
 };
 
-// ---------------------------------------------------------------------------
-// 2) Quita el prefijo de grupo aleatorio de Kobo.
-//    "group_nb18u42/group_ye37m21/Correo_electr_nico_principal"
-//      -> "Correo_electr_nico_principal"
-// ---------------------------------------------------------------------------
-function limpiarClave(clave) {
-  const partes = clave.split('/');
-  return partes[partes.length - 1];
-}
- 
-// ---------------------------------------------------------------------------
-// 3) Parsea el contenido del campo "valor".
-//    Maneja el caso de que Sequelize ya lo devuelva como objeto.
-// ---------------------------------------------------------------------------
-function parsearValor(valor) {
-  if (valor == null) return null;
-  if (typeof valor === 'object') return valor;
-  try {
-    return JSON.parse(valor);
-  } catch (e) {
-    return null; // si algún registro viene mal formado, lo ignoramos
-  }
-}
- 
-// ---------------------------------------------------------------------------
-// 4) Aplana el formulario: deja solo las preguntas reales con clave limpia.
-// ---------------------------------------------------------------------------
-function aplanarFormulario(json) {
-  const salida = {};
-  if (!json) return salida;
- 
-  for (const [clave, valor] of Object.entries(json)) {
-    if (CLAVES_EXCLUIDAS.has(clave)) continue;
-    if (clave.startsWith('_') || clave.startsWith('meta/')) continue;
- 
-    const claveLimpia = limpiarClave(clave);
- 
-    if (Array.isArray(valor)) {
-      salida[claveLimpia] = valor.join(', ');
-    } else {
-      // Las preguntas de selección múltiple vienen como "2 3" o
-      // "mujeres j_venes". Si quieres separarlas por comas, descomenta:
-      // salida[claveLimpia] = String(valor).split(' ').join(', ');
-      salida[claveLimpia] = valor;
-    }
-  }
-  return salida;
-}
- 
-async function cargarMapasDeEtiquetas() {
-  const filas = await EncabezadoDashboardKobo.findAll({ raw: true });
- 
-  const porModulo = new Map(); // `${nombre_modulo}||${name}` -> label
-  const porName = new Map();   // name -> label (respaldo)
- 
-  for (const f of filas) {
-    const label = (f.label && f.label.trim()) ? f.label.trim() : f.name;
-    if (f.nombre_modulo) {
-      porModulo.set(`${f.nombre_modulo}||${f.name}`, label);
-    }
-    if (!porName.has(f.name)) porName.set(f.name, label);
-  }
-  return { porModulo, porName };
-}
- 
-// Resuelve el label de una columna: primero por módulo, luego solo por name,
-// y si no existe en la tabla, deja el name original.
-function resolverLabel(name, modulo, mapas) {
-  if (modulo) {
-    const conModulo = mapas.porModulo.get(`${modulo}||${name}`);
-    if (conModulo) return conModulo;
-  }
-  return mapas.porName.get(name) ?? name;
-}
 
 // ---------------------------------------------------------------------------
-// 5) Controlador del endpoint
+//  Controlador del endpoint
 // ---------------------------------------------------------------------------
 export const exportarParticipantesExcel = async (req, res) => {
-  try {
-    const { modulo } = req.query;
+   try {
+    const { columnas, datos } = await obtenerDatosReporte(req.query);
  
-    const where = {};
-    if (modulo) where.nombre_modulo = modulo;
- 
-    // Cargamos datos y mapas de etiquetas en paralelo
-    const [filas, mapas] = await Promise.all([
-      VistaDatosParticipantesCompleta.findAll({ where, raw: true }),
-      cargarMapasDeEtiquetas(),
-    ]);
- 
-    // Una respuesta por id_respuesta (el JSON completo está en "valor")
-    const respuestasPorId = new Map();
-    for (const fila of filas) {
-      if (!respuestasPorId.has(fila.id_respuesta)) {
-        respuestasPorId.set(fila.id_respuesta, fila);
-      }
-    }
- 
-    const camposBase = [
-      'id_respuesta', 'documento', 'nombre_participante',
-      'apellido_participante', 'email', 'nombre_modulo',
-    ];
- 
-    const columnasDinamicas = [];          // name (clave limpia), en orden
-    const setColumnas = new Set();
-    const moduloPorColumna = new Map();    // name -> módulo que la introdujo
-    const registros = [];
- 
-    for (const fila of respuestasPorId.values()) {
-      const form = aplanarFormulario(parsearValor(fila.valor));
- 
-      for (const clave of Object.keys(form)) {
-        if (!setColumnas.has(clave)) {
-          setColumnas.add(clave);
-          columnasDinamicas.push(clave);
-          moduloPorColumna.set(clave, fila.nombre_modulo);
-        }
-      }
- 
-      registros.push({
-        id_respuesta: fila.id_respuesta,
-        documento: fila.documento,
-        nombre_participante: fila.nombre_participante,
-        apellido_participante: fila.apellido_participante,
-        email: fila.email,
-        nombre_modulo: fila.nombre_modulo,
-        ...form,
-      });
-    }
- 
-    // ----- Construcción del Excel -----
     const workbook = new ExcelJS.Workbook();
     workbook.creator = 'Reporte Participantes';
     workbook.created = new Date();
     const hoja = workbook.addWorksheet('Participantes');
  
-    // Columnas base (header legible) + columnas dinámicas con su label
-    const columnasBaseDef = camposBase.map((c) => ({
-      header: ETIQUETAS_BASE[c] ?? c,
-      key: c,
-      width: 22,
+    // Encabezados = label; key = name (para mapear los datos)
+    hoja.columns = columnas.map((c) => ({
+      header: c.label,
+      key: c.key,
+      width: c.fija ? 22 : 28,
     }));
- 
-    const columnasDinDef = columnasDinamicas.map((name) => ({
-      header: resolverLabel(name, moduloPorColumna.get(name), mapas),
-      key: name, // la clave sigue siendo el "name" para mapear los datos
-      width: 28,
-    }));
- 
-    hoja.columns = [...columnasBaseDef, ...columnasDinDef];
  
     // Estilo del encabezado
     const filaEncabezado = hoja.getRow(1);
@@ -521,13 +390,12 @@ export const exportarParticipantesExcel = async (req, res) => {
     };
     filaEncabezado.height = 32;
  
-    for (const registro of registros) {
-      hoja.addRow(registro);
+    for (const fila of datos) {
+      hoja.addRow(fila);
     }
  
     hoja.views = [{ state: 'frozen', ySplit: 1 }];
  
-    // ----- Enviar como descarga -----
     res.setHeader(
       'Content-Type',
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'

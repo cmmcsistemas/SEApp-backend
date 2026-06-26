@@ -1,0 +1,191 @@
+// helpers/participantesReporte.helper.js
+//
+// Lógica compartida entre el endpoint de listado (JSON) y el de exportación (Excel).
+import { Op, fn, col } from 'sequelize';
+import VistaDatosParticipantesCompleta from '../models/vistaDatosParticipantesCompleta.js';
+import EncabezadoDashboardKobo from '../models/encabezadoDashboardKobo.js';
+
+// Claves técnicas de Kobo que no van en el reporte
+const CLAVES_EXCLUIDAS = new Set([
+  '_id', 'formhub/uuid', 'start', 'end', 'username', 'deviceid',
+  '__version__', 'meta/instanceID', '_xform_id_string', '_uuid',
+  'meta/rootUuid', '_attachments', '_status', '_geolocation',
+  '_tags', '_notes', '_validation_status', '_submitted_by',
+  // '_submission_time',
+]);
+
+// Etiquetas legibles de las columnas fijas del participante
+export const ETIQUETAS_BASE = {
+  id_respuesta: 'ID Respuesta',
+  documento: 'Documento',
+  nombre_participante: 'Nombre',
+  apellido_participante: 'Apellido',
+  email: 'Correo electrónico',
+  nombre_modulo: 'Módulo',
+};
+
+const CAMPOS_BASE = [
+  'id_respuesta', 'documento', 'nombre_participante',
+  'apellido_participante', 'email', 'nombre_modulo',
+];
+
+// --------------------------- utilidades de Kobo ---------------------------
+function limpiarClave(clave) {
+  const partes = clave.split('/');
+  return partes[partes.length - 1];
+}
+
+function parsearValor(valor) {
+  if (valor == null) return null;
+  if (typeof valor === 'object') return valor;
+  try {
+    return JSON.parse(valor);
+  } catch (e) {
+    return null;
+  }
+}
+
+function aplanarFormulario(json) {
+  const salida = {};
+  if (!json) return salida;
+  for (const [clave, valor] of Object.entries(json)) {
+    if (CLAVES_EXCLUIDAS.has(clave)) continue;
+    if (clave.startsWith('_') || clave.startsWith('meta/')) continue;
+    const claveLimpia = limpiarClave(clave);
+    salida[claveLimpia] = Array.isArray(valor) ? valor.join(', ') : valor;
+  }
+  return salida;
+}
+
+// --------------------------- mapeo name -> label ---------------------------
+async function cargarMapasDeEtiquetas() {
+  const filas = await EncabezadoDashboardKobo.findAll({ raw: true });
+  const porModulo = new Map();
+  const porName = new Map();
+  for (const f of filas) {
+    const label = (f.label && f.label.trim()) ? f.label.trim() : f.name;
+    if (f.nombre_modulo) porModulo.set(`${f.nombre_modulo}||${f.name}`, label);
+    if (!porName.has(f.name)) porName.set(f.name, label);
+  }
+  return { porModulo, porName };
+}
+
+function resolverLabel(name, modulo, mapas) {
+  if (modulo) {
+    const conModulo = mapas.porModulo.get(`${modulo}||${name}`);
+    if (conModulo) return conModulo;
+  }
+  return mapas.porName.get(name) ?? name;
+}
+
+// --------------------------- construcción del WHERE ---------------------------
+// Filtros que viven en columnas de la vista (nombre, apellido, documento, módulo).
+function construirWhere({ participante, nombres, apellidos, modulo }) {
+  const where = {};
+  const and = [];
+
+  if (modulo) where.nombre_modulo = modulo;
+  if (nombres) and.push({ nombre_participante: { [Op.like]: `%${nombres}%` } });
+  if (apellidos) and.push({ apellido_participante: { [Op.like]: `%${apellidos}%` } });
+
+  if (participante) {
+    const texto = String(participante).trim();
+    const ors = [
+      { nombre_participante: { [Op.like]: `%${texto}%` } },
+      { apellido_participante: { [Op.like]: `%${texto}%` } },
+    ];
+    // documento es numérico: solo comparamos por igualdad cuando el texto es numérico
+    if (/^\d+$/.test(texto)) ors.push({ documento: Number(texto) });
+    and.push({ [Op.or]: ors });
+  }
+
+  if (and.length) where[Op.and] = and;
+  return where;
+}
+
+// --------------------------- función principal ---------------------------
+// Devuelve { columnas, datos, total, opciones } listo para JSON o para Excel.
+export async function obtenerDatosReporte(query = {}) {
+  const { proyecto } = query;
+  const where = construirWhere(query);
+
+  const [filas, mapas, modulosRaw] = await Promise.all([
+    VistaDatosParticipantesCompleta.findAll({ where, raw: true }),
+    cargarMapasDeEtiquetas(),
+    VistaDatosParticipantesCompleta.findAll({
+      attributes: [[fn('DISTINCT', col('nombre_modulo')), 'nombre_modulo']],
+      raw: true,
+    }),
+  ]);
+
+  // Una respuesta por id_respuesta (el JSON completo está en "valor")
+  const respuestasPorId = new Map();
+  for (const fila of filas) {
+    if (!respuestasPorId.has(fila.id_respuesta)) {
+      respuestasPorId.set(fila.id_respuesta, fila);
+    }
+  }
+
+  // Registros con su formulario parseado + recolección de proyectos
+  let registros = [];
+  const proyectosSet = new Set();
+  for (const fila of respuestasPorId.values()) {
+    const form = aplanarFormulario(parsearValor(fila.valor));
+    if (form.Proyecto) proyectosSet.add(form.Proyecto);
+    registros.push({
+      base: {
+        id_respuesta: fila.id_respuesta,
+        documento: fila.documento,
+        nombre_participante: fila.nombre_participante,
+        apellido_participante: fila.apellido_participante,
+        email: fila.email,
+        nombre_modulo: fila.nombre_modulo,
+      },
+      modulo: fila.nombre_modulo,
+      form,
+    });
+  }
+
+  // Filtro por proyecto (vive dentro del JSON, se aplica en memoria)
+  if (proyecto) {
+    const objetivo = String(proyecto).toLowerCase();
+    registros = registros.filter(
+      (r) => String(r.form.Proyecto ?? '').toLowerCase() === objetivo
+    );
+  }
+
+  // Columnas dinámicas en orden de aparición + módulo que las introdujo
+  const columnasDinamicas = [];
+  const setColumnas = new Set();
+  const moduloPorColumna = new Map();
+  for (const r of registros) {
+    for (const clave of Object.keys(r.form)) {
+      if (!setColumnas.has(clave)) {
+        setColumnas.add(clave);
+        columnasDinamicas.push(clave);
+        moduloPorColumna.set(clave, r.modulo);
+      }
+    }
+  }
+
+  const columnas = [
+    ...CAMPOS_BASE.map((c) => ({ key: c, label: ETIQUETAS_BASE[c] ?? c, fija: true })),
+    ...columnasDinamicas.map((name) => ({
+      key: name,
+      label: resolverLabel(name, moduloPorColumna.get(name), mapas),
+      fija: false,
+    })),
+  ];
+
+  const datos = registros.map((r) => ({ ...r.base, ...r.form }));
+
+  return {
+    columnas,
+    datos,
+    total: datos.length,
+    opciones: {
+      modulos: modulosRaw.map((m) => m.nombre_modulo).filter(Boolean).sort(),
+      proyectos: [...proyectosSet].sort(),
+    },
+  };
+}

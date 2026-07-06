@@ -4,7 +4,7 @@
 import { Op, fn, col } from 'sequelize';
 import VistaDatosParticipantesCompleta from '../models/vistaDatosParticipantesCompleta.js';
 import EncabezadoDashboardKobo from '../models/encabezadoDashboardKobo.js';
-
+import DiccionarioDatosKoboParticipantes from '../models/diccionarioDatosKobo.js';
 // Claves técnicas de Kobo que no van en el reporte
 const CLAVES_EXCLUIDAS = new Set([
   '_id', 'formhub/uuid', 'start', 'end', 'username', 'deviceid',
@@ -18,8 +18,8 @@ const CLAVES_EXCLUIDAS = new Set([
 export const ETIQUETAS_BASE = {
   id_respuesta: 'ID Respuesta',
   documento: 'Documento',
-  nombre_participante: 'Nombre',
-  apellido_participante: 'Apellido',
+  nombre_participante: 'Nombre participante',
+  apellido_participante: 'Apellido participante',
   email: 'Correo electrónico',
   nombre_modulo: 'Módulo',
 };
@@ -76,6 +76,52 @@ function resolverLabel(name, modulo, mapas) {
     if (conModulo) return conModulo;
   }
   return mapas.porName.get(name) ?? name;
+}
+
+// ---------------------- Diccionario y respuestas ------------------ //
+
+async function cargarDiccionarioChoices() {
+  const filas = await DiccionarioDatosKoboParticipantes.findAll({ raw: true });
+  const porModuloPregunta = new Map(); // `${modulo}||${question}` -> Map(name -> label)
+  const porPregunta = new Map();       // `question`             -> Map(name -> label) (respaldo)
+ 
+  for (const f of filas) {
+    const claveMP = `${f.modulo}||${f.question}`;
+    if (!porModuloPregunta.has(claveMP)) porModuloPregunta.set(claveMP, new Map());
+    porModuloPregunta.get(claveMP).set(f.name, f.label);
+ 
+    if (!porPregunta.has(f.question)) porPregunta.set(f.question, new Map());
+    const mp = porPregunta.get(f.question);
+    if (!mp.has(f.name)) mp.set(f.name, f.label);
+  }
+  return { porModuloPregunta, porPregunta };
+}
+ 
+// Devuelve el Map(name -> label) de opciones para una pregunta, o null si no es de selección.
+function obtenerChoicesDePregunta(question, modulo, choices) {
+  if (modulo) {
+    const m = choices.porModuloPregunta.get(`${modulo}||${question}`);
+    if (m) return m;
+  }
+  return choices.porPregunta.get(question) ?? null;
+}
+ 
+// Traduce el valor de un campo:
+//  - Si la pregunta NO está en el diccionario -> texto libre/número/fecha: se deja igual.
+//  - Si SÍ está -> selección: separa por espacios (select_multiple) y traduce cada opción.
+function traducirCampo(valor, question, modulo, choices) {
+  const mapa = obtenerChoicesDePregunta(question, modulo, choices);
+ 
+  if (!mapa) {
+    return Array.isArray(valor) ? valor.join(', ') : valor;
+  }
+  if (valor == null || valor === '') return valor;
+ 
+  const tokens = Array.isArray(valor)
+    ? valor.map(String)
+    : String(valor).split(/\s+/).filter(Boolean);
+ 
+  return tokens.map((t) => mapa.get(t) ?? t).join(', ');
 }
 
 // --------------------------- construcción del WHERE ---------------------------

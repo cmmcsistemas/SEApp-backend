@@ -51,8 +51,7 @@ function aplanarFormulario(json) {
   for (const [clave, valor] of Object.entries(json)) {
     if (CLAVES_EXCLUIDAS.has(clave)) continue;
     if (clave.startsWith('_') || clave.startsWith('meta/')) continue;
-    const claveLimpia = limpiarClave(clave);
-    salida[claveLimpia] = Array.isArray(valor) ? valor.join(', ') : valor;
+    salida[limpiarClave(clave)] = valor;
   }
   return salida;
 }
@@ -155,7 +154,7 @@ export async function obtenerDatosReporte(query = {}) {
   const { proyecto } = query;
   const where = construirWhere(query);
 
-  const [filas, mapas, modulosRaw] = await Promise.all([
+  const [filas, mapas,choices, modulosRaw] = await Promise.all([
     VistaDatosParticipantesCompleta.findAll({ where, raw: true }),
     cargarMapasDeEtiquetas(),
     cargarDiccionarioChoices(),
@@ -177,7 +176,13 @@ export async function obtenerDatosReporte(query = {}) {
   let registros = [];
   const proyectosSet = new Set();
   for (const fila of respuestasPorId.values()) {
+    
+
     const form = aplanarFormulario(parsearValor(fila.valor));
+    const form = {};
+    for (const [clave, valor] of Object.entries(formRaw)) {
+      form[clave] = traducirCampo(valor, clave, fila.nombre_modulo, choices);
+    }
     if (form.Proyecto) proyectosSet.add(form.Proyecto);
     registros.push({
       base: {

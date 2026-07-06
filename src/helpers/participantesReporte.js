@@ -158,6 +158,7 @@ export async function obtenerDatosReporte(query = {}) {
   const [filas, mapas, modulosRaw] = await Promise.all([
     VistaDatosParticipantesCompleta.findAll({ where, raw: true }),
     cargarMapasDeEtiquetas(),
+    cargarDiccionarioChoices(),
     VistaDatosParticipantesCompleta.findAll({
       attributes: [[fn('DISTINCT', col('nombre_modulo')), 'nombre_modulo']],
       raw: true,

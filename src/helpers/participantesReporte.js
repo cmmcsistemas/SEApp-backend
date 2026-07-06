@@ -153,8 +153,8 @@ function construirWhere({ participante, nombres, apellidos, modulo }) {
 export async function obtenerDatosReporte(query = {}) {
   const { proyecto } = query;
   const where = construirWhere(query);
-
-  const [filas, mapas,choices, modulosRaw] = await Promise.all([
+ 
+  const [filas, mapas, choices, modulosRaw] = await Promise.all([
     VistaDatosParticipantesCompleta.findAll({ where, raw: true }),
     cargarMapasDeEtiquetas(),
     cargarDiccionarioChoices(),
@@ -163,7 +163,7 @@ export async function obtenerDatosReporte(query = {}) {
       raw: true,
     }),
   ]);
-
+ 
   // Una respuesta por id_respuesta (el JSON completo está en "valor")
   const respuestasPorId = new Map();
   for (const fila of filas) {
@@ -171,19 +171,20 @@ export async function obtenerDatosReporte(query = {}) {
       respuestasPorId.set(fila.id_respuesta, fila);
     }
   }
-
-  // Registros con su formulario parseado + recolección de proyectos
+ 
+  // Registros con su formulario ya TRADUCIDO (valores legibles)
   let registros = [];
   const proyectosSet = new Set();
   for (const fila of respuestasPorId.values()) {
-    
-
-    const form = aplanarFormulario(parsearValor(fila.valor));
+    const formRaw = aplanarFormulario(parsearValor(fila.valor));
+ 
     const form = {};
     for (const [clave, valor] of Object.entries(formRaw)) {
       form[clave] = traducirCampo(valor, clave, fila.nombre_modulo, choices);
     }
+ 
     if (form.Proyecto) proyectosSet.add(form.Proyecto);
+ 
     registros.push({
       base: {
         id_respuesta: fila.id_respuesta,
@@ -197,15 +198,15 @@ export async function obtenerDatosReporte(query = {}) {
       form,
     });
   }
-
-  // Filtro por proyecto (vive dentro del JSON, se aplica en memoria)
+ 
+  // Filtro por proyecto (ya traducido, para que coincida con el desplegable)
   if (proyecto) {
     const objetivo = String(proyecto).toLowerCase();
     registros = registros.filter(
       (r) => String(r.form.Proyecto ?? '').toLowerCase() === objetivo
     );
   }
-
+ 
   // Columnas dinámicas en orden de aparición + módulo que las introdujo
   const columnasDinamicas = [];
   const setColumnas = new Set();
@@ -219,7 +220,7 @@ export async function obtenerDatosReporte(query = {}) {
       }
     }
   }
-
+ 
   const columnas = [
     ...CAMPOS_BASE.map((c) => ({ key: c, label: ETIQUETAS_BASE[c] ?? c, fija: true })),
     ...columnasDinamicas.map((name) => ({
@@ -228,9 +229,9 @@ export async function obtenerDatosReporte(query = {}) {
       fija: false,
     })),
   ];
-
+ 
   const datos = registros.map((r) => ({ ...r.base, ...r.form }));
-
+ 
   return {
     columnas,
     datos,

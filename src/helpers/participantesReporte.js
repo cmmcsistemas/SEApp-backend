@@ -143,8 +143,12 @@ function obtenerChoicesDePregunta(question, modulo, choices) {
 // Traduce el valor de un campo:
 //  - Si la pregunta NO está en el diccionario -> texto libre/número/fecha: se deja igual.
 //  - Si SÍ está -> selección: separa por espacios (select_multiple) y traduce cada opción.
-function traducirCampo(valor, question, modulo, choices) {
-  const mapa = obtenerChoicesDePregunta(question, modulo, choices);
+
+// Traduce el valor de un campo usando su nombre BASE (sin sufijo de repetición)
+// contra el diccionario de choices.
+function traducirCampo(valor, baseName, modulo, choices) {
+  const mapa = obtenerChoicesDePregunta(baseName, modulo, choices);
+
  
   if (!mapa) {
     return Array.isArray(valor) ? valor.join(', ') : valor;
@@ -211,11 +215,11 @@ export async function obtenerDatosReporte(query = {}) {
   let registros = [];
   const proyectosSet = new Set();
   for (const fila of respuestasPorId.values()) {
-    const formRaw = aplanarFormulario(parsearValor(fila.valor));
+       const camposPlanos = aplanarFormulario(parsearValor(fila.valor));
  
     const form = {};
-    for (const [clave, valor] of Object.entries(formRaw)) {
-      form[clave] = traducirCampo(valor, clave, fila.nombre_modulo, choices);
+    for (const campo of camposPlanos) {
+      form[campo.key] = traducirCampo(campo.valor, campo.baseName, fila.nombre_modulo, choices);
     }
  
     if (form.Proyecto) proyectosSet.add(form.Proyecto);
@@ -258,11 +262,12 @@ export async function obtenerDatosReporte(query = {}) {
  
   const columnas = [
     ...CAMPOS_BASE.map((c) => ({ key: c, label: ETIQUETAS_BASE[c] ?? c, fija: true })),
-    ...columnasDinamicas.map((name) => ({
-      key: name,
-      label: resolverLabel(name, moduloPorColumna.get(name), mapas),
-      fija: false,
-    })),
+    ...columnasDinamicas.map((clave) => {
+      const { base, rep } = baseNameYRepeticion(clave);
+      let label = resolverLabel(base, moduloPorColumna.get(clave), mapas);
+      if (rep) label = `${label} (Sesión ${rep})`;
+      return { key: clave, label, fija: false };
+    }),
   ];
  
   const datos = registros.map((r) => ({ ...r.base, ...r.form }));

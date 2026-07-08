@@ -45,15 +45,50 @@ function parsearValor(valor) {
   }
 }
 
+// Un valor es "grupo repetible" si es un array no vacío cuyos elementos son objetos
+// (no arrays, no null). Así se representan en Kobo los repeat groups.
+function esGrupoRepetible(valor) {
+  return (
+    Array.isArray(valor) &&
+    valor.length > 0 &&
+    valor.every((v) => typeof v === 'object' && v !== null && !Array.isArray(v))
+  );
+}
+
 function aplanarFormulario(json) {
-  const salida = {};
-  if (!json) return salida;
-  for (const [clave, valor] of Object.entries(json)) {
-    if (CLAVES_EXCLUIDAS.has(clave)) continue;
-    if (clave.startsWith('_') || clave.startsWith('meta/')) continue;
-    salida[limpiarClave(clave)] = valor;
+  const campos = [];
+  if (!json) return campos;
+ 
+  function procesar(obj, sufijo) {
+    for (const [clave, valor] of Object.entries(obj)) {
+      if (CLAVES_EXCLUIDAS.has(clave)) continue;
+      if (clave.startsWith('_') || clave.startsWith('meta/')) continue;
+ 
+      const baseName = limpiarClave(clave);
+ 
+      if (esGrupoRepetible(valor)) {
+        // Repeat group: procesamos cada repetición por separado
+        valor.forEach((item, idx) => {
+          procesar(item, `${sufijo}__rep${idx + 1}`);
+        });
+      } else if (typeof valor === 'object' && valor !== null && !Array.isArray(valor)) {
+        // Objeto anidado no repetible (grupo normal de Kobo): se aplana igual, sin sufijo extra
+        procesar(valor, sufijo);
+      } else {
+        // Escalar, o array simple (select_multiple, etc.) -> se deja crudo,
+        // la traducción/join se hace más adelante en traducirCampo().
+        campos.push({ key: `${baseName}${sufijo}`, baseName, valor });
+      }
+    }
   }
-  return salida;
+    procesar(json, '');
+  return campos;
+}
+
+  function baseNameYRepeticion(clave) {
+  const m = clave.match(/^(.+)__rep(\d+)$/);
+  if (m) return { base: m[1], rep: Number(m[2]) };
+  return { base: clave, rep: null };
 }
 
 // --------------------------- mapeo name -> label ---------------------------

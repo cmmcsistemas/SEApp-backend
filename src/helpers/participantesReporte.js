@@ -29,6 +29,9 @@ const CAMPOS_BASE = [
   'apellido_participante', 'email', 'nombre_modulo',
 ];
 
+
+const SEP_MODULO = '::';
+ 
 // --------------------------- utilidades de Kobo ---------------------------
 function limpiarClave(clave) {
   const partes = clave.split('/');
@@ -54,6 +57,7 @@ function esGrupoRepetible(valor) {
     valor.every((v) => typeof v === 'object' && v !== null && !Array.isArray(v))
   );
 }
+
 
 function aplanarFormulario(json) {
   const campos = [];
@@ -187,10 +191,78 @@ function construirWhere({ participante, nombres, apellidos, modulo }) {
   return where;
 }
 
+// --------------------------- consolidación por participante ---------------------------
+// Agrupa varias respuestas (una por módulo) del MISMO documento en un solo registro.
+// Cada campo de módulo se prefija con "<modulo>::<clave>" para que nunca choque
+// con un campo de mismo nombre en otro módulo.
+function consolidarPorParticipante(registros) {
+  const porDocumento = new Map();
+ 
+  for (const r of registros) {
+    const doc = r.base.documento;
+    if (!porDocumento.has(doc)) {
+      porDocumento.set(doc, {
+        documento: doc,
+        nombre_participante: r.base.nombre_participante,
+        apellido_participante: r.base.apellido_participante,
+        email: r.base.email,
+        idsRespuesta: [],
+        modulos: new Set(),
+        form: {},
+      });
+    }
+    const grupo = porDocumento.get(doc);
+    grupo.idsRespuesta.push(r.base.id_respuesta);
+    grupo.modulos.add(r.modulo);
+ 
+    for (const [clave, valor] of Object.entries(r.form)) {
+      grupo.form[`${r.modulo}${SEP_MODULO}${clave}`] = valor;
+    }
+  }
+ 
+  const consolidados = [];
+  for (const g of porDocumento.values()) {
+    consolidados.push({
+      base: {
+        id_respuesta: g.idsRespuesta.join(', '),
+        documento: g.documento,
+        nombre_participante: g.nombre_participante,
+        apellido_participante: g.apellido_participante,
+        email: g.email,
+        nombre_modulo: [...g.modulos].sort().join(', '),
+      },
+      modulo: null, // ya no hay un único módulo por fila
+      form: g.form,
+    });
+  }
+  return consolidados;
+}
+ 
+// Resuelve el label de una columna dinámica, sea normal o consolidada (con prefijo de módulo).
+function resolverLabelColumna(clave, moduloPorColumna, mapas) {
+  const idx = clave.indexOf(SEP_MODULO);
+ 
+  if (idx !== -1) {
+    // Columna consolidada: "<modulo>::<claveOriginal>"
+    const modulo = clave.slice(0, idx);
+    const claveOriginal = clave.slice(idx + SEP_MODULO.length);
+    const { base, rep } = baseNameYRepeticion(claveOriginal);
+    let label = resolverLabel(base, modulo, mapas);
+    if (rep) label += ` (Sesión ${rep})`;
+    label += ` — ${modulo}`;
+    return label;
+  }
+ 
+  const { base, rep } = baseNameYRepeticion(clave);
+  let label = resolverLabel(base, moduloPorColumna.get(clave), mapas);
+  if (rep) label += ` (Sesión ${rep})`;
+  return label;
+}
+ 
 // --------------------------- función principal ---------------------------
 // Devuelve { columnas, datos, total, opciones } listo para JSON o para Excel.
 export async function obtenerDatosReporte(query = {}) {
-  const { proyecto } = query;
+  const { proyecto, agrupar } = query;
   const where = construirWhere(query);
  
   const [filas, mapas, choices, modulosRaw] = await Promise.all([
@@ -245,6 +317,10 @@ export async function obtenerDatosReporte(query = {}) {
       (r) => String(r.form.Proyecto ?? '').toLowerCase() === objetivo
     );
   }
+
+    if (String(agrupar).toLowerCase() === 'participante') {
+    registros = consolidarPorParticipante(registros);
+  }
  
   // Columnas dinámicas en orden de aparición + módulo que las introdujo
   const columnasDinamicas = [];
@@ -262,12 +338,12 @@ export async function obtenerDatosReporte(query = {}) {
  
   const columnas = [
     ...CAMPOS_BASE.map((c) => ({ key: c, label: ETIQUETAS_BASE[c] ?? c, fija: true })),
-    ...columnasDinamicas.map((clave) => {
-      const { base, rep } = baseNameYRepeticion(clave);
-      let label = resolverLabel(base, moduloPorColumna.get(clave), mapas);
-      if (rep) label = `${label} (Sesión ${rep})`;
-      return { key: clave, label, fija: false };
-    }),
+    ...columnasDinamicas.map((clave) => ({
+      key: clave,
+      label: resolverLabelColumna(clave, moduloPorColumna, mapas),
+      fija: false,
+    })),
+
   ];
  
   const datos = registros.map((r) => ({ ...r.base, ...r.form }));

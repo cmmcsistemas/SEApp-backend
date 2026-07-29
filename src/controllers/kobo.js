@@ -293,7 +293,7 @@ export const recibirDatosKoboDiagnostico = async (req, res) => {
     }
 };
 
-export const recibirDatosKoboVisitaTecnicaUno = async (req, res) => {
+export const recibirDatosKoboFormularioUnicoMaestro = async (req, res) => {
     // 1. Kobo envía todo en el body. ¡Ojo con las mayúsculas!
     const payload = req.body; 
 
@@ -342,7 +342,7 @@ export const recibirDatosKoboVisitaTecnicaUno = async (req, res) => {
 
         await DatoRespuesta.create({
             id_respuesta: rId,
-            id_campo: 1250, 
+            id_campo: 1249, 
             valor: JSON.stringify(payload), // Recuerda tener esta columna como TEXT o JSON en BD
             created_at: new Date()
         }, { transaction: t });
@@ -368,7 +368,6 @@ export const recibirDatosKoboVisitaTecnicaUno = async (req, res) => {
         });
     }
 };
-
 
 export const recibirDatosKoboPlanFormacion = async (req, res) => {
     // 1. Kobo envía todo en el body. ¡Ojo con las mayúsculas!

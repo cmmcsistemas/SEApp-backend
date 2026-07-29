@@ -5,6 +5,8 @@ import { Op, fn, col } from 'sequelize';
 import VistaDatosParticipantesCompleta from '../models/vistaDatosParticipantesCompleta.js';
 import EncabezadoDashboardKobo from '../models/encabezadoDashboardKobo.js';
 import DiccionarioDatosKoboParticipantes from '../models/diccionarioDatosKobo.js';
+import Departamento from '../models/departamento.js';
+import Municipio from '../models/municipio.js';
 // Claves técnicas de Kobo que no van en el reporte
 const CLAVES_EXCLUIDAS = new Set([
   '_id', 'formhub/uuid', 'start', 'end', 'username', 'deviceid',
@@ -31,6 +33,16 @@ const CAMPOS_BASE = [
 
 
 const SEP_MODULO = '::';
+
+// Campos geográficos: se resuelven contra las tablas `departamentos` / `municipios`
+// en lugar del diccionario de choices genérico. La clave es el nombre BASE del
+// campo (el mismo que llega en form/questión, sin el path de grupos de Kobo).
+const CAMPOS_GEOGRAFICOS = {
+  depto_exp: 'departamento',
+  Municipio_de_expedici_n: 'municipio',
+  Departamento_de_residencia: 'departamento',
+  Ciudad_o_municipio_de_residenc: 'municipio',
+};
  
 // --------------------------- utilidades de Kobo ---------------------------
 function limpiarClave(clave) {
@@ -150,19 +162,50 @@ function obtenerChoicesDePregunta(question, modulo, choices) {
 
 // Traduce el valor de un campo usando su nombre BASE (sin sufijo de repetición)
 // contra el diccionario de choices.
-function traducirCampo(valor, baseName, modulo, choices) {
-  const mapa = obtenerChoicesDePregunta(baseName, modulo, choices);
+async function cargarMapaGeografico() {
+  const [deps, munis] = await Promise.all([
+    Departamento.findAll({ raw: true }),
+    Municipio.findAll({ raw: true }),
+  ]);
 
- 
+  const departamentos = new Map();
+  for (const d of deps) {
+    departamentos.set(String(d.id_departamento), d.nombre_departamento);
+  }
+
+  const municipios = new Map();
+  for (const m of munis) {
+    municipios.set(String(m.id_municipio), m.nombre_municipio);
+  }
+
+  return { departamentos, municipios };
+}
+
+// --------------------------- traducción de un campo ---------------------------
+// Prioridad: 1) campo geográfico (tablas propias) -> 2) diccionario de choices -> 3) valor crudo
+function traducirCampo(valor, baseName, modulo, choices, geo) {
+  // 1) Campos geográficos
+  const tipoGeo = CAMPOS_GEOGRAFICOS[baseName];
+  if (tipoGeo) {
+    if (valor == null || valor === '') return valor;
+    const mapa = tipoGeo === 'departamento' ? geo.departamentos : geo.municipios;
+    const tokens = Array.isArray(valor)
+      ? valor.map(String)
+      : String(valor).split(/\s+/).filter(Boolean);
+    return tokens.map((t) => mapa.get(t) ?? t).join(', ');
+  }
+
+  // 2) Diccionario de choices genérico
+  const mapa = obtenerChoicesDePregunta(baseName, modulo, choices);
   if (!mapa) {
     return Array.isArray(valor) ? valor.join(', ') : valor;
   }
   if (valor == null || valor === '') return valor;
- 
+
   const tokens = Array.isArray(valor)
     ? valor.map(String)
     : String(valor).split(/\s+/).filter(Boolean);
- 
+
   return tokens.map((t) => mapa.get(t) ?? t).join(', ');
 }
 
@@ -265,10 +308,11 @@ export async function obtenerDatosReporte(query = {}) {
   const { proyecto, agrupar } = query;
   const where = construirWhere(query);
  
-  const [filas, mapas, choices, modulosRaw] = await Promise.all([
+  const [filas, mapas, choices, geo, modulosRaw] = await Promise.all([
     VistaDatosParticipantesCompleta.findAll({ where, raw: true }),
     cargarMapasDeEtiquetas(),
     cargarDiccionarioChoices(),
+    cargarMapaGeografico(),
     VistaDatosParticipantesCompleta.findAll({
       attributes: [[fn('DISTINCT', col('nombre_modulo')), 'nombre_modulo']],
       raw: true,
@@ -291,7 +335,7 @@ export async function obtenerDatosReporte(query = {}) {
  
     const form = {};
     for (const campo of camposPlanos) {
-      form[campo.key] = traducirCampo(campo.valor, campo.baseName, fila.nombre_modulo, choices);
+      form[campo.key] = traducirCampo(campo.valor, campo.baseName, fila.nombre_modulo, choices, geo);
     }
  
     if (form.Proyecto) proyectosSet.add(form.Proyecto);

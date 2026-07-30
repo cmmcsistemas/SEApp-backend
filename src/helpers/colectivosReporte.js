@@ -62,7 +62,7 @@ function construirWhere({ colectivo, nombre_colectivo, nit, modulo }) {
 // fusionaría en un solo registro a todos los colectivos sin NIT.
 export const obtenerDatosReporteColectivos = crearObtenerDatosReporte({
   modelo: VistaDatosColectivosCompleta,
-  modeloChoices: DiccionarioDatosKoboColectivos,
+  modeloChoices: DiccionarioDatosKoboParticipantes,
   camposBase: CAMPOS_BASE,
   etiquetasBase: ETIQUETAS_BASE,
   claveAgrupacion: 'id_colectivo',

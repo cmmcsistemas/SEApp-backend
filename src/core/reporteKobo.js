@@ -91,7 +91,7 @@ function baseNameYRepeticion(clave) {
  
 // --------------------------- diccionario 1: labels de PREGUNTAS ---------------------------
 async function cargarMapasDeEtiquetas() {
-  const filas = await EncabezadoCampo.findAll({ raw: true });
+  const filas = await EncabezadoDashboardKoboColectivo.findAll({ raw: true });
   const porModulo = new Map();
   const porName = new Map();
   for (const f of filas) {

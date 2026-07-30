@@ -1,6 +1,6 @@
 import express from 'express';
 import { ensureAuth } from "../middleware/auth.js";
-import { basicRegisterColectivo,recibirDatosKoboVisitaTecnicaUno, exportarColectivosExcel, getColectivosXML, searchColectivo, getKoboDataByColectivo, extendRegisterColectivo, recibirDatosKoboDiagnosticoTecnico, recibirDatosKoboMonitoreoSeguimiento } from '../controllers/colectivo.js';
+import { basicRegisterColectivo,recibirDatosKoboVisitaTecnicaUno, exportarColectivosExcel, getColectivosXML, searchColectivo, getKoboDataByColectivo, extendRegisterColectivo, recibirDatosKoboDiagnosticoTecnico, recibirDatosKoboMonitoreoSeguimiento, listadoColectivos } from '../controllers/colectivo.js';
 
 
 const router = express.Router();
@@ -14,5 +14,7 @@ router.get('/informe-kobo-participantes/', exportarColectivosExcel);
 router.post('/register-from-kobo-visita-tecnica', recibirDatosKoboVisitaTecnicaUno);
 router.post('/register-from-kobo-monitoreo-seguimiento', recibirDatosKoboMonitoreoSeguimiento);
 router.post('/register-from-kobo-diagnostico-tecnico', recibirDatosKoboDiagnosticoTecnico);
+router.get('/reportes/colectivos', listadoColectivos);
+
 
 export default router;

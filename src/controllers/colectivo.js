@@ -12,7 +12,7 @@ import { Op } from "sequelize";
 import RespuestasFormulario from "../models/respuestasFormulario.js";
 import VistaDatosColectivosCompleta from "../models/vistaDatosColectivosCompleta.js";
 import ExcelJS from 'exceljs';
-
+import { obtenerDatosReporteColectivos } from "../helpers/colectivosReporte.js";
 
 
   export const searchColectivo = async (req, res) => {
@@ -396,16 +396,18 @@ export const getKoboDataByColectivo = async (req, res) => {
 };
 
 export const recibirDatosKoboVisitaTecnicaUno = async (req, res) => {
-    // 1. Kobo envía todo en el body. ¡Ojo con las mayúsculas!
-    const payload = req.body; 
+      const payload = req.body; 
+  
+      const nombre_colectivo = payload['Grupo_0001/Subgrupo_0001/Pregunta_0008']; // o payload['group_xxx/Nombres']
 
-    const documento = payload['N_mero_de_identificaci_n'];
+  
+      const idUsuarioApp = payload['Id_usuario'];
+  
 
-    const idUsuarioApp = payload['Id_usuario'];
 
-    // Validación básica de presencia
-    if ( !documento) {
-        return res.status(400).json({ status: "error", message: "Faltan datos clave del participante desde Kobo" });
+    // Validación básica de información
+    if (!nombre_colectivo) {
+        return res.status(400).json({ status: "error", message: "Faltan datos clave del colecitvo desde Kobo" });
     }
 
     // Iniciamos la transacción para afectar las 2 tablas de forma segura
@@ -413,23 +415,21 @@ export const recibirDatosKoboVisitaTecnicaUno = async (req, res) => {
 
     try {
       // 2. Control de duplicados o Búsqueda del Participante
-        let participante = await Participante.findOne({
-            where: { documento: documento },
+        let colectivoRecord = await Colectivo.findOne({
+            where: { colectivo: nombre_colectivo },
             transaction: t
         });
 
-        if (!participante) {
-            participante = await Participante.create({
-                nombre,
-                apellido,
-                documento,
+        if (!colectivoRecord) {
+            colectivoRecord = await Colectivo.create({
+                colectivo,
+                nit,
                 email,
-                telefono,
-                fecha_nacimiento
+                telefono
             }, { transaction: t });
         } 
 
-        const pId = participante.id_participante;
+        const pId = colectivoRecord.id_colectivo;
             // await participante.update({ nombre, apellido... }, { transaction: t });
 
         const cabeceraForm = await RespuestasFormulario.create({
@@ -453,8 +453,8 @@ export const recibirDatosKoboVisitaTecnicaUno = async (req, res) => {
 
     return res.status(201).json({
             status: "success",
-            message: "Participante y respuestas de Kobo registrados con éxito",
-            participante: participante,
+            message: "Colectivo y respuestas de Kobo registrados con éSxito",
+            colectivoRecord: colectivoRecord,
             formulario: cabeceraForm
         });
 
@@ -472,16 +472,18 @@ export const recibirDatosKoboVisitaTecnicaUno = async (req, res) => {
 };
 
 export const recibirDatosKoboMonitoreoSeguimiento = async (req, res) => {
-    // 1. Kobo envía todo en el body. ¡Ojo con las mayúsculas!
-    const payload = req.body; 
+   const payload = req.body; 
+  
+      const nombre_colectivo = payload['f1_etapa1/group_nb18u42/Nombre_del_colectivo']; // o payload['group_xxx/Nombres']
+        
+    const nitKobo = payload['f1_etapa1/group_nb18u42/NIT_del_colectivo'] || null;
+      const idUsuarioApp = payload['Id_usuario'];
+  
 
-    const documento = payload['N_mero_de_identificaci_n'];
 
-    const idUsuarioApp = payload['Id_usuario'];
-
-    // Validación básica de presencia
-    if ( !documento) {
-        return res.status(400).json({ status: "error", message: "Faltan datos clave del participante desde Kobo" });
+    // Validación básica de información
+    if (!nombre_colectivo) {
+        return res.status(400).json({ status: "error", message: "Faltan datos clave del colecitvo desde Kobo" });
     }
 
     // Iniciamos la transacción para afectar las 2 tablas de forma segura
@@ -489,23 +491,21 @@ export const recibirDatosKoboMonitoreoSeguimiento = async (req, res) => {
 
     try {
       // 2. Control de duplicados o Búsqueda del Participante
-        let participante = await Participante.findOne({
-            where: { documento: documento },
+        let colectivoRecord = await Colectivo.findOne({
+            where: { colectivo: nombre_colectivo },
             transaction: t
         });
 
-        if (!participante) {
-            participante = await Participante.create({
-                nombre,
-                apellido,
-                documento,
+        if (!colectivoRecord) {
+            colectivoRecord = await Colectivo.create({
+                colectivo,
+                nit,
                 email,
-                telefono,
-                fecha_nacimiento
+                telefono
             }, { transaction: t });
         } 
 
-        const pId = participante.id_participante;
+        const pId = colectivoRecord.id_colectivo;
             // await participante.update({ nombre, apellido... }, { transaction: t });
 
         const cabeceraForm = await RespuestasFormulario.create({
@@ -529,8 +529,8 @@ export const recibirDatosKoboMonitoreoSeguimiento = async (req, res) => {
 
     return res.status(201).json({
             status: "success",
-            message: "Participante y respuestas de Kobo registrados con éxito",
-            participante: participante,
+            message: "Colectivo y respuestas de Kobo registrados con éSxito",
+            colectivoRecord: colectivoRecord,
             formulario: cabeceraForm
         });
 
@@ -549,15 +549,18 @@ export const recibirDatosKoboMonitoreoSeguimiento = async (req, res) => {
 
 export const recibirDatosKoboDiagnosticoTecnico = async (req, res) => {
     // 1. Kobo envía todo en el body. ¡Ojo con las mayúsculas!
-    const payload = req.body; 
+   const payload = req.body; 
+  
+      const nombre_colectivo = payload['Grupo_0001/Subgrupo_0001/Pregunta_0008']; // o payload['group_xxx/Nombres']
 
-    const documento = payload['N_mero_de_identificaci_n'];
+  
+      const idUsuarioApp = payload['Id_usuario'];
+  
 
-    const idUsuarioApp = payload['Id_usuario'];
 
-    // Validación básica de presencia
-    if ( !documento) {
-        return res.status(400).json({ status: "error", message: "Faltan datos clave del participante desde Kobo" });
+    // Validación básica de información
+    if (!nombre_colectivo) {
+        return res.status(400).json({ status: "error", message: "Faltan datos clave del colecitvo desde Kobo" });
     }
 
     // Iniciamos la transacción para afectar las 2 tablas de forma segura
@@ -565,23 +568,21 @@ export const recibirDatosKoboDiagnosticoTecnico = async (req, res) => {
 
     try {
       // 2. Control de duplicados o Búsqueda del Participante
-        let participante = await Participante.findOne({
-            where: { documento: documento },
+        let colectivoRecord = await Colectivo.findOne({
+            where: { colectivo: nombre_colectivo },
             transaction: t
         });
 
-        if (!participante) {
-            participante = await Participante.create({
-                nombre,
-                apellido,
-                documento,
+        if (!colectivoRecord) {
+            colectivoRecord = await Colectivo.create({
+                colectivo,
+                nit,
                 email,
-                telefono,
-                fecha_nacimiento
+                telefono
             }, { transaction: t });
         } 
 
-        const pId = participante.id_participante;
+        const pId = colectivoRecord.id_colectivo;
             // await participante.update({ nombre, apellido... }, { transaction: t });
 
         const cabeceraForm = await RespuestasFormulario.create({
@@ -605,8 +606,8 @@ export const recibirDatosKoboDiagnosticoTecnico = async (req, res) => {
 
     return res.status(201).json({
             status: "success",
-            message: "Participante y respuestas de Kobo registrados con éxito",
-            participante: participante,
+            message: "Colectivo y respuestas de Kobo registrados con éSxito",
+            colectivoRecord: colectivoRecord,
             formulario: cabeceraForm
         });
 
@@ -623,6 +624,20 @@ export const recibirDatosKoboDiagnosticoTecnico = async (req, res) => {
     }
 };
 
+
+export const listadoColectivos = async (req, res) => {
+  try {
+    const resultado = await obtenerDatosReporteColectivos(req.query);
+    res.json(resultado);
+  } catch (error) {
+    console.error('Error al obtener el listado de colectivos:', error);
+    res.status(500).json({
+      mensaje: 'Error al obtener el listado',
+      error: error.message,
+    });
+  }
+};
+ 
 
 const CLAVES_EXCLUIDAS = new Set([
   '_id', 'formhub/uuid', 'start', 'end', 'username', 'deviceid',
@@ -686,78 +701,47 @@ function aplanarFormulario(json) {
 // ---------------------------------------------------------------------------
 export const exportarColectivosExcel = async (req, res) => {
   try {
-    // raw: true -> objetos planos, más fáciles de procesar
-    const filas = await VistaDatosColectivosCompleta.findAll({ raw: true });
+    const { columnas, datos } = await obtenerDatosReporteColectivos(req.query);
  
-    // Agrupamos por id_respuesta para quedarnos con un JSON por respuesta
-    const respuestasPorId = new Map();
-    for (const fila of filas) {
-      if (!respuestasPorId.has(fila.id_respuesta)) {
-        respuestasPorId.set(fila.id_respuesta, fila);
-      }
-    }
- 
-    // Columnas fijas de la cabecera del colectivo
-    const camposBase = [
-      'id_respuesta', 'nit', 'nombre_colectivo',
-      'email', 'nombre_modulo',
-    ];
- 
-    // Columnas dinámicas (preguntas del formulario), en orden de aparición
-    const columnasDinamicas = [];
-    const setColumnas = new Set();
-    const registros = [];
- 
-    for (const fila of respuestasPorId.values()) {
-      const form = aplanarFormulario(parsearValor(fila.valor));
- 
-      for (const clave of Object.keys(form)) {
-        if (!setColumnas.has(clave)) {
-          setColumnas.add(clave);
-          columnasDinamicas.push(clave);
-        }
-      }
- 
-      registros.push({
-        id_respuesta: fila.id_respuesta,
-        nit: fila.nit,
-        nombre_colectivo: fila.nombre_colectivo,
-        email: fila.email,
-        nombre_modulo: fila.nombre_modulo,
-        ...form,
+    // Excel soporta máximo 16.384 columnas por hoja. Con agrupar=colectivo el
+    // número puede crecer (todas las preguntas de todos los módulos).
+    if (columnas.length > 16384) {
+      return res.status(400).json({
+        mensaje: `El reporte tiene ${columnas.length} columnas, superando el máximo de Excel (16384). Aplica más filtros para reducirlo.`,
       });
     }
  
-    // ----- Construcción del Excel -----
     const workbook = new ExcelJS.Workbook();
-    workbook.creator = 'Reporte Colectivo';
+    workbook.creator = 'Reporte Colectivos';
     workbook.created = new Date();
- 
     const hoja = workbook.addWorksheet('Colectivos');
  
-    const columnas = [...camposBase, ...columnasDinamicas];
-    hoja.columns = columnas.map((c) => ({ header: c, key: c, width: 25 }));
+    // Encabezado = label legible; key = name (para mapear los datos)
+    hoja.columns = columnas.map((c) => ({
+      header: c.label,
+      key: c.key,
+      width: c.fija ? 22 : 28,
+    }));
  
-    // Estilo de la fila de encabezado
     const filaEncabezado = hoja.getRow(1);
     filaEncabezado.font = { bold: true, color: { argb: 'FFFFFFFF' } };
     filaEncabezado.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
     filaEncabezado.fill = {
-      type: 'pattern',
-      pattern: 'solid',
-      fgColor: { argb: 'FF305496' },
+      type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF305496' },
     };
-    filaEncabezado.height = 30;
+    filaEncabezado.height = 32;
  
-    // Agregar datos
-    for (const registro of registros) {
-      hoja.addRow(registro);
+    for (const fila of datos) {
+      hoja.addRow(fila);
     }
  
-    // Congelar la primera fila
-    hoja.views = [{ state: 'frozen', ySplit: 1 }];
+    // Congela encabezado + primera columna, y habilita autofiltro
+    hoja.views = [{ state: 'frozen', xSplit: 1, ySplit: 1 }];
+    hoja.autoFilter = {
+      from: { row: 1, column: 1 },
+      to: { row: 1, column: columnas.length },
+    };
  
-    // ----- Enviar como descarga -----
     res.setHeader(
       'Content-Type',
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
@@ -770,7 +754,7 @@ export const exportarColectivosExcel = async (req, res) => {
     await workbook.xlsx.write(res);
     res.end();
   } catch (error) {
-    console.error('Error al exportar a Excel:', error);
+    console.error('Error al exportar colectivos a Excel:', error);
     res.status(500).json({
       mensaje: 'Error al generar el reporte',
       error: error.message,

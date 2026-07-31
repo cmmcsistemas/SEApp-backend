@@ -400,10 +400,11 @@ export const recibirDatosKoboVisitaTecnicaUno = async (req, res) => {
   
       const nombre_colectivo = payload['Grupo_0001/Subgrupo_0001/Pregunta_0008']; // o payload['group_xxx/Nombres']
 
-  
       const idUsuarioApp = payload['Id_usuario'];
-  
 
+        const nit = null;
+        const email = null;
+        const telefono = null;
 
     // Validación básica de información
     if (!nombre_colectivo) {
@@ -422,7 +423,7 @@ export const recibirDatosKoboVisitaTecnicaUno = async (req, res) => {
 
         if (!colectivoRecord) {
             colectivoRecord = await Colectivo.create({
-                colectivo,
+                colectivo: nombre_colectivo,
                 nit,
                 email,
                 telefono

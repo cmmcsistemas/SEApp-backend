@@ -10,7 +10,7 @@ router.post('/addColectivo', basicRegisterColectivo);
 router.get('/application/xml', getColectivosXML);
 router.get('/kobo-data/:id_colectivo', getKoboDataByColectivo);
 router.post('/addExtendColectivo', extendRegisterColectivo);
-router.get('/informe-kobo-participantes/', exportarColectivosExcel);
+router.get('/informe-kobo-participantes', exportarColectivosExcel);
 router.post('/register-from-kobo-visita-tecnica', recibirDatosKoboVisitaTecnicaUno);
 router.post('/register-from-kobo-monitoreo-seguimiento', recibirDatosKoboMonitoreoSeguimiento);
 router.post('/register-from-kobo-diagnostico-tecnico', recibirDatosKoboDiagnosticoTecnico);
